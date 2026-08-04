@@ -1,17 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Copy, RefreshCw } from 'lucide-react';
 import type { Customer } from '../db';
-import { blessingVariants } from '../utils/blessing';
+import { generateBlessing } from '../utils/blessing';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 
 export function BlessingModal({ customer, onClose }: { customer: Customer | null; onClose: () => void }) {
-  const [idx, setIdx] = useState(0);
+  const [text, setText] = useState('');
   const toast = useToast();
+
+  useEffect(() => {
+    if (customer) setText(generateBlessing(customer));
+  }, [customer]);
+
   if (!customer) return null;
 
-  const variants = blessingVariants(customer);
-  const text = variants[idx % variants.length];
+  const refresh = () => {
+    let next = generateBlessing(customer);
+    if (next === text) next = generateBlessing(customer);
+    setText(next);
+  };
 
   const copy = async () => {
     try {
@@ -29,7 +37,7 @@ export function BlessingModal({ customer, onClose }: { customer: Customer | null
       onClose={onClose}
       footer={
         <>
-          <button type="button" className="btn" onClick={() => setIdx((i) => i + 1)}><RefreshCw size={14} /> 换一换</button>
+          <button type="button" className="btn" onClick={refresh}><RefreshCw size={14} /> 换一换</button>
           <button type="button" className="btn btn-primary" onClick={() => void copy()}><Copy size={14} /> 复制</button>
         </>
       }
