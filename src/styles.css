@@ -130,10 +130,18 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .delete-btn:hover { color: var(--danger); }
 
 .up-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; }
+button.up-row { width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+button.up-row:hover { border-color: var(--primary); }
 .up-date { font-size: 12px; color: var(--muted); }
 .up-name { font-size: 13px; font-weight: 500; }
 .up-side { display: inline-flex; align-items: center; gap: 10px; }
 .up-days { font-size: 12px; color: var(--a); }
+
+button.card-link { width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+button.card-link:hover { border-color: var(--primary); }
+
+.back-btn { margin-bottom: 12px; padding-left: 4px; }
+.record-meta { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
 
 .empty { background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center; font-size: 13px; color: var(--muted); }
 

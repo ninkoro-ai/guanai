@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { ContactModal } from '../components/ContactModal';
+import { Pencil } from 'lucide-react';
 import { LevelBadge } from '../components/LevelBadge';
+import { RecordFormModal } from '../components/RecordFormModal';
 import { levelOrder } from '../constants';
-import { db, hasContactToday, type Customer } from '../db';
+import { db, hasContactToday, type ContactRecord, type Customer } from '../db';
 import type { AppSettings } from '../settings';
 import { birthdayInfo, todayKey } from '../utils/date';
 
 const TIMES = ['09:00', '10:00', '14:00'];
 const KINDS = ['第一次提醒', '第二次提醒', '第三次提醒'];
 
-export function RemindersPage({ settings }: { settings: AppSettings }) {
+export function RemindersPage({ settings, onOpenDetail }: { settings: AppSettings; onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
   const [contactFor, setContactFor] = useState<Customer | null>(null);
+  const [editRecord, setEditRecord] = useState<ContactRecord | null>(null);
 
   const dateKey = todayKey();
   const advance = customers
@@ -38,13 +40,13 @@ export function RemindersPage({ settings }: { settings: AppSettings }) {
       {!settings.advance7 && <div className="empty">已关闭提前 7 天提醒，可在设置中开启</div>}
       {settings.advance7 && advance.length === 0 && <div className="empty">暂无提前提醒</div>}
       {settings.advance7 && advance.map((c) => (
-        <div key={c.id} className="card">
+        <button key={c.id} type="button" className="card card-link" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
           <div className="card-head">
             <span className="name">{c.displayName}</span>
             <LevelBadge level={c.level} />
           </div>
           <div className="sub">{birthdayInfo(c.birthday).days} 天后生日 · 请提前安排客户关怀</div>
-        </div>
+        </button>
       ))}
 
       <h2 className="section-title">当天提醒（A类客户）</h2>
@@ -79,15 +81,27 @@ export function RemindersPage({ settings }: { settings: AppSettings }) {
         return (
           <div key={r.id} className="record">
             <div className="record-head">
-              <span className="name">{c?.displayName ?? '未知客户'}</span>
-              <span className="sub">{r.contactDate} · {r.contactType}</span>
+              <div className="record-meta">
+                <span className="name">{c?.displayName ?? '未知客户'}</span>
+                <span className="sub">{r.contactDate} · {r.contactType}</span>
+              </div>
+              <button type="button" className="btn btn-icon btn-ghost" aria-label="编辑维护记录" onClick={() => setEditRecord(r)}>
+                <Pencil size={14} />
+              </button>
             </div>
             <div className="record-body">{r.remark}</div>
           </div>
         );
       })}
 
-      <ContactModal customer={contactFor} onClose={() => setContactFor(null)} />
+      {contactFor && <RecordFormModal customer={contactFor} record={null} onClose={() => setContactFor(null)} />}
+      {editRecord && (
+        <RecordFormModal
+          customer={editRecord.customerId != null ? byId.get(editRecord.customerId) ?? null : null}
+          record={editRecord}
+          onClose={() => setEditRecord(null)}
+        />
+      )}
     </div>
   );
 }

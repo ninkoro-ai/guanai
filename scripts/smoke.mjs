@@ -32,6 +32,8 @@ function buildFixture() {
     ['C003', '张先生', '1988-08-20', '男', '制造业', 'A类', ''],
     ['C004', '周女士', '08-15', '女', '服务业', 'B类', ''],
     ['', '错误客户', '2020-01-01', '男', '其他', 'C类', ''],
+    ['C005', '郑先生', '1990年8月5日', '男', '其他', 'C类', ''],
+    ['C006', '错误日期', '2026-02-30', '男', '其他', 'C类', ''],
     ['C20260001', '刘先生改', '1988-08-04', '男', '制造业', 'A类', '覆盖测试'],
   ]);
   const wb = XLSX.utils.book_new();
@@ -80,6 +82,7 @@ try {
     if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
   });
   page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
+  page.on('dialog', (d) => d.accept());
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.waitForSelector('.app');
@@ -137,7 +140,7 @@ try {
 
   // 完成维护
   await page.getByRole('button', { name: '完成维护' }).first().click();
-  await page.locator('#contact-remark').fill('客户表示感谢');
+  await page.locator('#record-remark').fill('客户表示感谢');
   await page.getByRole('button', { name: '保存记录' }).click();
   await page.waitForSelector('.done-tag');
   await page.screenshot({ path: path.join(SHOT_DIR, 'home-done.png') });
@@ -146,6 +149,15 @@ try {
   await page.getByRole('button', { name: '提醒' }).click();
   await page.waitForSelector('.timeline');
   await page.screenshot({ path: path.join(SHOT_DIR, 'reminders.png') });
+
+  // 提前 7 天提醒卡片可点击进入客户详情
+  await page.locator('.card-link').first().click();
+  await page.waitForSelector('.detail-view');
+  const detailText = await page.locator('.detail-view').innerText();
+  if (!detailText.includes('历史维护记录')) throw new Error('客户详情缺少历史维护记录');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'reminder-detail.png') });
+  await page.getByRole('button', { name: '返回' }).click();
+  await page.waitForSelector('.timeline');
 
   // 设置页 + 导出
   await page.getByRole('button', { name: '设置' }).click();
@@ -163,6 +175,21 @@ try {
   if (!countAfterSearch.includes('1 位客户')) throw new Error(`搜索计数异常: ${countAfterSearch}`);
   await page.locator('.search input').fill('');
 
+  // 客户详情页：历史维护记录 + 二次编辑
+  await page.getByRole('button', { name: '查看 刘先生 详情' }).click();
+  await page.waitForSelector('.detail-view');
+  await page.waitForSelector('.detail-view .record');
+  const historyBody = await page.locator('.detail-view .record-body').first().innerText();
+  if (!historyBody.includes('客户表示感谢')) throw new Error('详情页历史维护记录缺失');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'detail.png') });
+  await page.getByRole('button', { name: '编辑维护记录' }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('#record-remark').fill('客户表示感谢，已确认后续服务');
+  await page.getByRole('button', { name: '保存修改' }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view .record-body')?.textContent ?? '').includes('已确认后续服务'));
+  await page.getByRole('button', { name: '返回' }).click();
+  await page.waitForSelector('.toolbar');
+
   // 批量导入（含校验、重复、错误报告）
   await page.getByRole('button', { name: '批量导入' }).click();
   await page.waitForSelector('dialog.modal[open]');
@@ -171,14 +198,16 @@ try {
   const checkText = await page.locator('dialog.modal[open]').innerText();
   if (!checkText.includes('C20260001')) throw new Error('未识别重复客户');
   if (!checkText.includes('客户编号不能为空')) throw new Error('未展示校验错误');
+  if (!checkText.includes('生日日期不存在')) throw new Error('未展示非法日期错误');
   await page.screenshot({ path: path.join(SHOT_DIR, 'import-check.png') });
   await page.getByRole('button', { name: '跳过' }).click();
   await page.waitForSelector('.result-done');
-  await page.getByRole('button', { name: '完成' }).click();
+  await page.screenshot({ path: path.join(SHOT_DIR, 'import-result.png') });
+  await page.getByRole('button', { name: '撤销导入' }).click();
   await page.waitForSelector('.toast-show');
-  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('5 位客户'));
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('3 位客户'));
   const totalCount = await page.locator('.count').innerText();
-  if (!totalCount.includes('5 位客户')) throw new Error(`导入后客户数异常: ${totalCount}`);
+  if (!totalCount.includes('3 位客户')) throw new Error(`撤销导入后客户数异常: ${totalCount}`);
 
   // PWA：manifest 与服务工作者
   const manifestCount = await page.locator('link[rel="manifest"]').count();

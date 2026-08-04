@@ -1,7 +1,6 @@
 import * as XLSX from 'xlsx';
 import { INDUSTRIES } from '../constants';
 import type { ContactRecord, Customer, Gender, Level } from '../db';
-import { parseBirthday } from './date';
 
 export interface ImportError {
   line: number;
@@ -30,6 +29,7 @@ export function downloadImportTemplate(): void {
     HEADERS,
     ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年'],
     ['C002', '王女士', '08-15', '女', '服务业', 'B类', ''],
+    ['C003', '陈先生', '1990年8月5日', '男', '建筑业', 'C类', ''],
   ]);
   ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 20 }];
   const wb = XLSX.utils.book_new();
@@ -58,31 +58,106 @@ function normalizeIndustry(v: unknown): string {
   return (INDUSTRIES as readonly string[]).includes(s) ? s : '其他';
 }
 
-function cellToBirthday(v: unknown): string | null {
+function isValidYMD(y: number, m: number, d: number): boolean {
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return false;
+  if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1) return false;
+  const maxDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return d <= maxDay;
+}
+
+function isValidMD(m: number, d: number): boolean {
+  if (!Number.isInteger(m) || !Number.isInteger(d)) return false;
+  if (m < 1 || m > 12 || d < 1) return false;
+  // 无年份时按闰年判断，允许 02-29
+  const maxDay = new Date(Date.UTC(2000, m, 0)).getUTCDate();
+  return d <= maxDay;
+}
+
+function formatYMD(y: number, m: number, d: number): string {
+  return `${y}-${pad2(m)}-${pad2(d)}`;
+}
+
+function formatMD(m: number, d: number): string {
+  return `${pad2(m)}-${pad2(d)}`;
+}
+
+/**
+ * 智能解析生日：兼容常见用户输入格式，统一转换为 YYYY-MM-DD 或 MM-DD。
+ * 支持：1990-08-05、08-05、1990/08/05、1990.08.05、1990年8月5日、8月5日、8-5 等；
+ * 支持 Excel Date 对象、日期序列号（如 45874）以及无分隔符的 19900805 / 0805。
+ * 无法解析或日期不存在时返回 null。
+ */
+export function parseFlexibleBirthday(v: unknown): string | null {
   if (v === null || v === undefined || v === '') return null;
+
   if (v instanceof Date && !Number.isNaN(v.getTime())) {
-    return `${v.getFullYear()}-${pad2(v.getMonth() + 1)}-${pad2(v.getDate())}`;
+    return formatYMD(v.getFullYear(), v.getMonth() + 1, v.getDate());
   }
+
   if (typeof v === 'number') {
-    const d = XLSX.SSF.parse_date_code(v);
-    if (d) return `${d.y}-${pad2(d.m)}-${pad2(d.d)}`;
+    if (Number.isInteger(v) && v >= 19000101 && v <= 21001231) {
+      const y = Math.floor(v / 10000);
+      const m = Math.floor(v / 100) % 100;
+      const d = v % 100;
+      if (isValidYMD(y, m, d)) return formatYMD(y, m, d);
+    }
+    const serial = XLSX.SSF.parse_date_code(v);
+    if (serial && isValidYMD(serial.y, serial.m, serial.d)) return formatYMD(serial.y, serial.m, serial.d);
     return null;
   }
-  if (typeof v === 'string') {
-    const s = v.trim();
-    const direct = parseBirthday(s);
-    if (direct) return direct;
-    const ymd = s.match(/^(\d{4})[年/.-](\d{1,2})[月/.-](\d{1,2})日?$/);
-    if (ymd) return `${ymd[1]}-${pad2(Number(ymd[2]))}-${pad2(Number(ymd[3]))}`;
-    const md = s.match(/^(\d{1,2})[月/.-](\d{1,2})日?$/);
-    if (md) {
-      const month = Number(md[1]);
-      const day = Number(md[2]);
-      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return `${pad2(month)}-${pad2(day)}`;
-    }
+
+  if (typeof v !== 'string') return null;
+
+  const s = String(v)
+    .trim()
+    .replace(/(上午|下午|时|点).*$/, '')
+    .replace(/\s+\d{1,2}:\d{2}(:\d{2})?.*$/, '')
+    .replace(/[．。]/g, '.')
+    .replace(/[／]/g, '/')
+    .replace(/[－–—]/g, '-')
+    .replace(/年/g, '-')
+    .replace(/月/g, '-')
+    .replace(/日/g, '')
+    .replace(/\s+/g, '')
+    .trim();
+  if (!s) return null;
+
+  const parts = s.split(/[^0-9]+/).filter(Boolean).map(Number);
+  if (parts.length === 3) {
+    const [y, m, d] = parts;
+    if (isValidYMD(y, m, d)) return formatYMD(y, m, d);
     return null;
+  }
+  if (parts.length === 2) {
+    const [m, d] = parts;
+    if (isValidMD(m, d)) return formatMD(m, d);
+    return null;
+  }
+  if (parts.length === 1) {
+    const n = parts[0];
+    if (n >= 19000101 && n <= 21001231) {
+      const y = Math.floor(n / 10000);
+      const m = Math.floor(n / 100) % 100;
+      const d = n % 100;
+      if (isValidYMD(y, m, d)) return formatYMD(y, m, d);
+    }
+    if (n >= 101 && n <= 1231) {
+      const m = Math.floor(n / 100);
+      const d = n % 100;
+      if (isValidMD(m, d)) return formatMD(m, d);
+    }
   }
   return null;
+}
+
+function isDateLike(v: unknown): boolean {
+  if (v === null || v === undefined || v === '') return false;
+  if (typeof v === 'number' || v instanceof Date) return true;
+  if (typeof v === 'string') {
+    const s = v.trim();
+    return /\d/.test(s) && /[-/.\年月日]/.test(s);
+  }
+  return false;
 }
 
 export async function parseImportFile(file: File, existingNos: Set<string>): Promise<ParsedImport> {
@@ -105,12 +180,25 @@ export async function parseImportFile(file: File, existingNos: Set<string>): Pro
 
     const customerNo = String(cells[0] ?? '').trim();
     const displayName = String(cells[1] ?? '').trim();
-    const birthday = cellToBirthday(cells[2]);
+    const birthdayCell = cells[2];
+    const birthday = parseFlexibleBirthday(birthdayCell);
+    const birthdayEmpty =
+      birthdayCell === null ||
+      birthdayCell === undefined ||
+      (typeof birthdayCell === 'string' && birthdayCell.trim() === '');
 
     const rowErrors: string[] = [];
     if (!customerNo) rowErrors.push('客户编号不能为空');
     if (!displayName) rowErrors.push('客户简称不能为空');
-    if (!birthday) rowErrors.push('生日格式错误，请使用 YYYY-MM-DD 或 MM-DD');
+    if (birthdayEmpty) {
+      rowErrors.push('生日不能为空');
+    } else if (!birthday) {
+      rowErrors.push(
+        isDateLike(birthdayCell)
+          ? '生日日期不存在，请检查年月日是否正确'
+          : '生日格式无法识别，请填写例如：1990-08-05、08-05、1990年8月5日',
+      );
+    }
     const level = normalizeLevel(cells[5]);
     if (level === null) rowErrors.push('客户等级格式错误，请填写 A/B/C');
 

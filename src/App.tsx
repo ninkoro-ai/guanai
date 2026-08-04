@@ -3,6 +3,7 @@ import { Cake } from 'lucide-react';
 import BottomNav from './components/BottomNav';
 import { useToast } from './components/Toast';
 import { CustomersPage } from './pages/CustomersPage';
+import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { HomePage } from './pages/HomePage';
 import { RemindersPage } from './pages/RemindersPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -13,6 +14,7 @@ export type Tab = 'home' | 'customers' | 'reminders' | 'settings';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('home');
+  const [detailId, setDetailId] = useState<number | null>(null);
   const [settings, setSettings] = useState<AppSettings>(readSettings);
   const toast = useToast();
 
@@ -21,6 +23,12 @@ export default function App() {
     setSettings(next);
     writeSettings(next);
     toast.show('提醒设置已保存');
+  };
+
+  const openDetail = (id: number) => setDetailId(id);
+  const switchTab = (next: Tab) => {
+    setTab(next);
+    setDetailId(null);
   };
 
   return (
@@ -33,12 +41,18 @@ export default function App() {
         <span className="logo"><Cake size={18} /></span>
       </header>
       <main className="app-main">
-        {tab === 'home' && <HomePage />}
-        {tab === 'customers' && <CustomersPage />}
-        {tab === 'reminders' && <RemindersPage settings={settings} />}
-        {tab === 'settings' && <SettingsPage settings={settings} onChange={updateSettings} />}
+        {detailId != null ? (
+          <CustomerDetailPage customerId={detailId} onBack={() => setDetailId(null)} />
+        ) : (
+          <>
+            {tab === 'home' && <HomePage onOpenDetail={openDetail} />}
+            {tab === 'customers' && <CustomersPage onOpenDetail={openDetail} />}
+            {tab === 'reminders' && <RemindersPage settings={settings} onOpenDetail={openDetail} />}
+            {tab === 'settings' && <SettingsPage settings={settings} onChange={updateSettings} />}
+          </>
+        )}
       </main>
-      <BottomNav tab={tab} onChange={setTab} />
+      <BottomNav tab={tab} onChange={switchTab} />
     </div>
   );
 }

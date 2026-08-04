@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Check, Sparkles } from 'lucide-react';
 import { BlessingModal } from '../components/BlessingModal';
-import { ContactModal } from '../components/ContactModal';
 import { LevelBadge } from '../components/LevelBadge';
+import { RecordFormModal } from '../components/RecordFormModal';
 import { levelOrder } from '../constants';
 import { db, hasContactToday, type Customer } from '../db';
 import { birthdayInfo, todayKey } from '../utils/date';
 
-export function HomePage() {
+export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
   const [blessFor, setBlessFor] = useState<Customer | null>(null);
@@ -64,19 +64,19 @@ export function HomePage() {
       {upcoming.map((c) => {
         const i = birthdayInfo(c.birthday);
         return (
-          <div key={c.id} className="up-row">
+          <button key={c.id} type="button" className="up-row" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
             <span className="up-date">{i.md}</span>
             <span className="up-name">{c.displayName}</span>
             <span className="up-side">
               <LevelBadge level={c.level} />
               <span className="up-days">{i.label}</span>
             </span>
-          </div>
+          </button>
         );
       })}
 
       <BlessingModal customer={blessFor} onClose={() => setBlessFor(null)} />
-      <ContactModal customer={contactFor} onClose={() => setContactFor(null)} />
+      {contactFor && <RecordFormModal customer={contactFor} record={null} onClose={() => setContactFor(null)} />}
     </div>
   );
 }

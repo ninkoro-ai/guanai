@@ -1,17 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Download, FileDown, Upload } from 'lucide-react';
+import { Download, FileDown, RotateCcw, Upload } from 'lucide-react';
 import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
 import { db } from '../db';
+import { getLastImport, subscribeImportSession, undoLastImport } from '../importSession';
 import type { AppSettings } from '../settings';
 import { downloadImportTemplate, exportData } from '../utils/excel';
 
 export function SettingsPage({ settings, onChange }: { settings: AppSettings; onChange: (patch: Partial<AppSettings>) => void }) {
   const [importOpen, setImportOpen] = useState(false);
+  const [, setSessionTick] = useState(0);
   const toast = useToast();
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
+
+  useEffect(() => subscribeImportSession(() => setSessionTick((t) => t + 1)), []);
+  const lastImport = getLastImport();
+
+  const undoLast = async () => {
+    if (!window.confirm('确认撤销上次导入？将删除本次新增的客户及其维护记录，并还原被覆盖的客户数据。')) return;
+    const ok = await undoLastImport();
+    if (ok) toast.show('已撤销上次导入');
+  };
 
   return (
     <div>
@@ -55,6 +66,15 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
           <FileDown size={14} /> 导出
         </button>
       </div>
+      {lastImport && (
+        <div className="setting">
+          <div>
+            <div className="setting-label">撤销上次导入</div>
+            <div className="setting-desc">{new Date(lastImport.at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })} 的批量导入，可回退误导入的数据</div>
+          </div>
+          <button type="button" className="btn btn-sm" onClick={() => void undoLast()}><RotateCcw size={14} /> 撤销</button>
+        </div>
+      )}
 
       <h2 className="section-title">提醒设置</h2>
       <div className="setting">

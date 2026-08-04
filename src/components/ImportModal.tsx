@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check, Download, FileDown, Upload } from 'lucide-react';
-import { db } from '../db';
+import { Check, Download, FileDown, RotateCcw, Upload } from 'lucide-react';
+import { db, type Customer } from '../db';
+import { getLastImport, setLastImport, undoLastImport } from '../importSession';
 import { downloadErrorReport, downloadImportTemplate, parseImportFile, type ParsedImport } from '../utils/excel';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
@@ -40,14 +41,18 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
   const apply = async (mode: 'overwrite' | 'skip') => {
     if (!parsed) return;
     const existing = await db.customers.toArray();
+    const addedIds: number[] = [];
+    const updated: Array<{ id: number; before: Customer }> = [];
     await db.transaction('rw', db.customers, async () => {
       for (const row of parsed.rows) {
-        await db.customers.add({ ...row, createdAt: Date.now() });
+        const id = await db.customers.add({ ...row, createdAt: Date.now() });
+        if (id != null) addedIds.push(id);
       }
       if (mode === 'overwrite') {
         for (const dup of parsed.duplicates) {
           const ex = existing.find((c) => c.customerNo === dup.customerNo);
           if (ex?.id != null) {
+            updated.push({ id: ex.id, before: { ...ex } });
             await db.customers.update(ex.id, {
               displayName: dup.row.displayName,
               birthday: dup.row.birthday,
@@ -60,12 +65,21 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
         }
       }
     });
+    setLastImport({ addedIds, updated, at: Date.now() });
     setOkCount(parsed.rows.length + (mode === 'overwrite' ? parsed.duplicates.length : 0));
     setStep('result');
   };
 
+  const undo = async () => {
+    if (!getLastImport()) return;
+    if (!window.confirm('确认撤销本次导入？将删除本次新增的客户及其维护记录，并还原被覆盖的客户数据。')) return;
+    await undoLastImport();
+    toast.show('已撤销本次导入');
+    onClose();
+  };
+
   const finish = () => {
-    toast.show(`导入完成：成功 ${okCount} 条，失败 ${parsed?.errors.length ?? 0} 条`);
+    toast.show(`导入完成：成功 ${okCount} 条，失败 ${parsed?.errors.length ?? 0} 条${getLastImport() ? '（可在设置中撤销）' : ''}`);
     onClose();
   };
 
@@ -79,7 +93,7 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
 
       {step === 'upload' && (
         <div>
-          <p className="muted-p">下载模板填写客户信息，再上传 Excel 文件（.xlsx / .xls）。生日支持 YYYY-MM-DD 或 MM-DD（无年份）。</p>
+          <p className="muted-p">下载模板填写客户信息，再上传 Excel 文件（.xlsx / .xls）。生日支持：1990-08-05、08-05、1990年8月5日、8月5日，系统会自动识别并转换。</p>
           <div className="row-actions">
             <button
               type="button"
@@ -138,6 +152,9 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
                 <FileDown size={14} /> 下载错误报告
               </button>
             )}
+            <button type="button" className="btn" onClick={() => void undo()}>
+              <RotateCcw size={14} /> 撤销导入
+            </button>
             <button type="button" className="btn btn-primary btn-sm" onClick={finish}><Check size={14} /> 完成</button>
           </div>
         </div>

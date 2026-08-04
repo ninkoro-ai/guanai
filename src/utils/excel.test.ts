@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as XLSX from 'xlsx';
-import { buildErrorReport, parseImportFile } from './excel';
+import { buildErrorReport, parseFlexibleBirthday, parseImportFile } from './excel';
 
 function makeFile(rows: unknown[][]): File {
   const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -12,8 +12,80 @@ function makeFile(rows: unknown[][]): File {
   });
 }
 
+describe('parseFlexibleBirthday', () => {
+  it('normalizes supported formats to YYYY-MM-DD or MM-DD', () => {
+    const cases: Array<[unknown, string]> = [
+      ['1990-08-05', '1990-08-05'],
+      ['08-05', '08-05'],
+      ['1990/08/05', '1990-08-05'],
+      ['1990.08.05', '1990-08-05'],
+      ['1990年8月5日', '1990-08-05'],
+      ['8月5日', '08-05'],
+      ['8-5', '08-05'],
+      ['8/5', '08-05'],
+      ['8.5', '08-05'],
+      ['1990-8-5', '1990-08-05'],
+      ['19900805', '1990-08-05'],
+    ];
+    for (const [input, expected] of cases) {
+      expect(parseFlexibleBirthday(input), String(input)).toBe(expected);
+    }
+  });
+
+  it('accepts Date objects and Excel serial numbers', () => {
+    expect(parseFlexibleBirthday(new Date(2026, 7, 5))).toBe('2026-08-05');
+    const serial = 45874;
+    const d = XLSX.SSF.parse_date_code(serial);
+    const expected = `${d.y}-${String(d.m).padStart(2, '0')}-${String(d.d).padStart(2, '0')}`;
+    expect(parseFlexibleBirthday(serial)).toBe(expected);
+  });
+
+  it('rejects empty, unrecognizable and impossible dates', () => {
+    expect(parseFlexibleBirthday('')).toBeNull();
+    expect(parseFlexibleBirthday(null)).toBeNull();
+    expect(parseFlexibleBirthday(undefined)).toBeNull();
+    expect(parseFlexibleBirthday('无法识别')).toBeNull();
+    expect(parseFlexibleBirthday('2026-02-30')).toBeNull();
+    expect(parseFlexibleBirthday('1990-13-05')).toBeNull();
+    expect(parseFlexibleBirthday('13-5')).toBeNull();
+  });
+});
+
 describe('parseImportFile', () => {
-  it('imports valid rows and reports errors with line numbers', async () => {
+  it('imports all supported birthday formats with normalization', async () => {
+    const formats = ['1990-08-05', '08-05', '1990/08/05', '1990.08.05', '1990年8月5日', '8月5日', '8-5'];
+    const file = makeFile([
+      ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注'],
+      ...formats.map((b, i) => [`C${String(i + 1).padStart(3, '0')}`, `客户${i + 1}`, b, '男', '其他', 'C类', '']),
+    ]);
+    const r = await parseImportFile(file, new Set());
+    expect(r.errors).toHaveLength(0);
+    expect(r.rows.map((x) => x.birthday)).toEqual([
+      '1990-08-05',
+      '08-05',
+      '1990-08-05',
+      '1990-08-05',
+      '1990-08-05',
+      '08-05',
+      '08-05',
+    ]);
+  });
+
+  it('reports clear errors for empty, impossible and unrecognizable birthdays', async () => {
+    const file = makeFile([
+      ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注'],
+      ['C001', '刘先生', '', '男', '其他', 'C类', ''],
+      ['C002', '陈先生', '2026-02-30', '男', '其他', 'C类', ''],
+      ['C003', '赵女士', '不知啥', '女', '其他', 'C类', ''],
+    ]);
+    const r = await parseImportFile(file, new Set());
+    expect(r.rows).toHaveLength(0);
+    expect(r.errors.some((e) => e.message.includes('生日不能为空'))).toBe(true);
+    expect(r.errors.some((e) => e.message.includes('生日日期不存在'))).toBe(true);
+    expect(r.errors.some((e) => e.message.includes('生日格式无法识别'))).toBe(true);
+  });
+
+  it('imports valid rows and reports missing fields with line numbers', async () => {
     const file = makeFile([
       ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注'],
       ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年'],
@@ -27,7 +99,7 @@ describe('parseImportFile', () => {
     expect(r.rows[1].birthday).toBe('1990-05-06');
     expect(r.errors.map((e) => e.line)).toEqual(expect.arrayContaining([3, 4]));
     expect(r.errors.some((e) => e.message.includes('客户编号不能为空'))).toBe(true);
-    expect(r.errors.some((e) => e.message.includes('生日格式错误'))).toBe(true);
+    expect(r.errors.some((e) => e.message.includes('生日格式无法识别'))).toBe(true);
   });
 
   it('detects duplicates against existing customers and within the file', async () => {
@@ -56,7 +128,7 @@ describe('parseImportFile', () => {
 
 describe('buildErrorReport', () => {
   it('includes line numbers', () => {
-    const report = buildErrorReport([{ line: 3, message: '客户编号不能为空' }]);
-    expect(report).toContain('第3行：客户编号不能为空');
+    const report = buildErrorReport([{ line: 3, message: '生日日期不存在，请检查年月日是否正确' }]);
+    expect(report).toContain('第3行：生日日期不存在');
   });
 });

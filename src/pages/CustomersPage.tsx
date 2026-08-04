@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { Eye, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import { ImportModal } from '../components/ImportModal';
 import { LevelBadge } from '../components/LevelBadge';
@@ -20,7 +20,7 @@ const TIME_FILTERS: Array<{ key: TimeFilter; label: string }> = [
   { key: 'month', label: '本月生日' },
 ];
 
-export function CustomersPage() {
+export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
   const [q, setQ] = useState('');
@@ -117,6 +117,9 @@ export function CustomersPage() {
               <StatusChip done={hasContactToday(records, c.id, dateKey)} />
             </div>
             <div className="row-btns">
+              <button type="button" className="btn btn-icon btn-ghost" aria-label={`查看 ${c.displayName} 详情`} onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
+                <Eye size={15} />
+              </button>
               <button type="button" className="btn btn-icon btn-ghost" aria-label={`编辑 ${c.displayName}`} onClick={() => { setFormCustomer(c); setFormOpen(true); }}>
                 <Pencil size={15} />
               </button>
