@@ -1,0 +1,227 @@
+import { spawn } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as XLSX from 'xlsx';
+import { chromium } from 'playwright';
+
+const PORT = 4173;
+const BASE = `http://localhost:${PORT}`;
+const SHOT_DIR = path.resolve('screenshots');
+const FIXTURE = path.join(SHOT_DIR, 'fixture.xlsx');
+
+function waitForServer(url, timeoutMs = 30000) {
+  const started = Date.now();
+  return new Promise((resolve, reject) => {
+    const tick = async () => {
+      try {
+        const res = await fetch(url);
+        if (res.ok) return resolve();
+      } catch {
+        // 尚未就绪
+      }
+      if (Date.now() - started > timeoutMs) return reject(new Error('preview server timeout'));
+      setTimeout(tick, 400);
+    };
+    void tick();
+  });
+}
+
+function buildFixture() {
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注'],
+    ['C003', '张先生', '1988-08-20', '男', '制造业', 'A类', ''],
+    ['C004', '周女士', '08-15', '女', '服务业', 'B类', ''],
+    ['', '错误客户', '2020-01-01', '男', '其他', 'C类', ''],
+    ['C20260001', '刘先生改', '1988-08-04', '男', '制造业', 'A类', '覆盖测试'],
+  ]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '客户');
+  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  fs.writeFileSync(FIXTURE, buf);
+}
+
+async function launch() {
+  try {
+    return await chromium.launch({ channel: 'msedge', headless: true });
+  } catch {
+    return chromium.launch({ headless: true });
+  }
+}
+
+fs.mkdirSync(SHOT_DIR, { recursive: true });
+buildFixture();
+
+const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'preview', '--port', String(PORT), '--strictPort'], {
+  stdio: 'ignore',
+});
+
+let browser;
+try {
+  await waitForServer(BASE);
+  browser = await launch();
+  const page = await browser.newPage({ viewport: { width: 420, height: 880 } });
+
+  await page.addInitScript(() => {
+    const RealDate = Date;
+    const FIXED = new RealDate(2026, 7, 4, 10, 0, 0).getTime();
+    class MockDate extends RealDate {
+      constructor(...args) {
+        super(...(args.length ? args : [FIXED]));
+      }
+      static now() {
+        return FIXED;
+      }
+    }
+    window.Date = MockDate;
+  });
+
+  const errors = [];
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
+  });
+  page.on('pageerror', (err) => errors.push(`pageerror: ${err.message}`));
+
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.app');
+
+  // 新增三个客户（一个今日生日、两个未来 7 天）
+  await page.getByRole('button', { name: '客户' }).click();
+  await page.waitForSelector('.toolbar');
+
+  async function addCustomer(no, name, birthday, gender, level, industry, remark) {
+    await page.getByRole('button', { name: /新增客户/ }).click();
+    await page.locator('#add-no').fill(no);
+    await page.locator('#add-name').fill(name);
+    await page.locator('#add-birthday').fill(birthday);
+    await page.locator('#add-gender').selectOption(gender);
+    await page.locator('#add-level').selectOption(level);
+    await page.locator('#add-industry').selectOption(industry);
+    if (remark) await page.locator('#add-remark').fill(remark);
+    await page.getByRole('button', { name: '保存客户' }).click();
+    await page.waitForSelector('.toast-show');
+    await page.waitForSelector('.toast-show', { state: 'hidden' }).catch(() => {});
+  }
+
+  await addCustomer('C20260001', '刘先生', '1988-08-04', '男', 'A', '制造业', '合作5年以上，喜欢茶文化');
+  await addCustomer('C20260004', '王先生', '08-10', '男', 'A', '批发零售', '合作多年');
+  await addCustomer('C20260005', '李女士', '1993-08-11', '女', 'B', '信息技术', '关注理财');
+
+  await page.screenshot({ path: path.join(SHOT_DIR, 'customers.png') });
+
+  // 编辑客户
+  await page.getByRole('button', { name: '编辑 刘先生' }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('#add-remark').fill('喜欢茶文化，重视服务');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'edit-modal.png') });
+  await page.getByRole('button', { name: '保存修改' }).click();
+  await page.waitForSelector('.toast-show');
+  await page.waitForSelector('.toast-show', { state: 'hidden' }).catch(() => {});
+
+  // 首页
+  await page.getByRole('button', { name: '首页' }).click();
+  await page.waitForSelector('.stats');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'home.png') });
+  const remarkText = await page.locator('.card .remark').first().innerText();
+  if (!remarkText.includes('重视服务')) throw new Error('客户编辑未生效');
+
+  const statsText = await page.locator('.stats').innerText();
+  if (!statsText.includes('今日生日') || !statsText.includes('未来7天')) throw new Error('首页统计缺失');
+
+  // 生成祝福
+  await page.getByRole('button', { name: '生成祝福' }).first().click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'blessing.png') });
+  const bubble = await page.locator('.bubble').innerText();
+  if (!bubble.includes('刘先生')) throw new Error('祝福语未包含客户名');
+  await page.getByRole('button', { name: '关闭' }).click();
+
+  // 完成维护
+  await page.getByRole('button', { name: '完成维护' }).first().click();
+  await page.locator('#contact-remark').fill('客户表示感谢');
+  await page.getByRole('button', { name: '保存记录' }).click();
+  await page.waitForSelector('.done-tag');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'home-done.png') });
+
+  // 提醒页
+  await page.getByRole('button', { name: '提醒' }).click();
+  await page.waitForSelector('.timeline');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'reminders.png') });
+
+  // 设置页 + 导出
+  await page.getByRole('button', { name: '设置' }).click();
+  await page.screenshot({ path: path.join(SHOT_DIR, 'settings.png') });
+  const dlPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: '导出', exact: true }).click();
+  const download = await dlPromise;
+  if (!download.suggestedFilename().includes('导出')) throw new Error('导出文件名不正确');
+
+  // 客户页搜索
+  await page.getByRole('button', { name: '客户' }).click();
+  await page.locator('.search input').fill('C20260001');
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('1 位客户'));
+  const countAfterSearch = await page.locator('.count').innerText();
+  if (!countAfterSearch.includes('1 位客户')) throw new Error(`搜索计数异常: ${countAfterSearch}`);
+  await page.locator('.search input').fill('');
+
+  // 批量导入（含校验、重复、错误报告）
+  await page.getByRole('button', { name: '批量导入' }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('input[type="file"]').setInputFiles(FIXTURE);
+  await page.waitForSelector('.result-nums');
+  const checkText = await page.locator('dialog.modal[open]').innerText();
+  if (!checkText.includes('C20260001')) throw new Error('未识别重复客户');
+  if (!checkText.includes('客户编号不能为空')) throw new Error('未展示校验错误');
+  await page.screenshot({ path: path.join(SHOT_DIR, 'import-check.png') });
+  await page.getByRole('button', { name: '跳过' }).click();
+  await page.waitForSelector('.result-done');
+  await page.getByRole('button', { name: '完成' }).click();
+  await page.waitForSelector('.toast-show');
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('5 位客户'));
+  const totalCount = await page.locator('.count').innerText();
+  if (!totalCount.includes('5 位客户')) throw new Error(`导入后客户数异常: ${totalCount}`);
+
+  // PWA：manifest 与服务工作者
+  const manifestCount = await page.locator('link[rel="manifest"]').count();
+  if (manifestCount === 0) throw new Error('未注入 manifest');
+  await page.waitForFunction(() => !!navigator.serviceWorker && !!navigator.serviceWorker.controller, null, { timeout: 20000 });
+  console.log('PWA_OK');
+
+  // 离线可用
+  const ctx = page.context();
+  await ctx.setOffline(true);
+  try {
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 });
+    await page.waitForSelector('.app', { timeout: 20000 });
+    await page.waitForSelector('.stats', { timeout: 20000 });
+    await page.screenshot({ path: path.join(SHOT_DIR, 'offline.png') });
+    console.log('OFFLINE_OK');
+  } finally {
+    await ctx.setOffline(false);
+  }
+
+  // 直接双击 dist/index.html（file://）也能正常使用
+  const filePage = await browser.newPage({ viewport: { width: 420, height: 880 } });
+  const fileErrors = [];
+  filePage.on('pageerror', (e) => fileErrors.push(e.message));
+  filePage.on('console', (msg) => {
+    if (msg.type() === 'error') fileErrors.push(`console: ${msg.text()}`);
+  });
+  const fileUrl = 'file:///' + path.resolve('dist/index.html').replace(/\\/g, '/');
+  await filePage.goto(fileUrl, { waitUntil: 'load', timeout: 20000 });
+  await filePage.waitForSelector('.app', { timeout: 15000 });
+  await filePage.waitForSelector('.stats', { timeout: 15000 });
+  await filePage.screenshot({ path: path.join(SHOT_DIR, 'file-mode.png') });
+  if (fileErrors.length > 0) throw new Error(`file:// 模式报错：\n${fileErrors.join('\n')}`);
+  await filePage.close();
+  console.log('FILE_MODE_OK');
+
+  if (errors.length > 0) {
+    throw new Error(`浏览器报错：\n${errors.join('\n')}`);
+  }
+
+  console.log('SMOKE_OK');
+  console.log('screenshots:', fs.readdirSync(SHOT_DIR).filter((f) => f.endsWith('.png')).join(', '));
+} finally {
+  if (browser) await browser.close();
+  server.kill();
+}
