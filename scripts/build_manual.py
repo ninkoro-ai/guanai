@@ -282,10 +282,11 @@ def build():
     para(doc, "心桥", size=30, bold=True, color=INK_BLUE, align=WD_ALIGN_PARAGRAPH.CENTER, after=8)
     para(doc, "为你搭建与客户之间心的桥梁", size=14, color=GRAY, align=WD_ALIGN_PARAGRAPH.CENTER, after=40)
     for line in [
-        "版本：V1.0",
+        "版本：V1.1",
         "适用对象：银行客户经理",
         "在线访问：https://xinqiao.ninkoro.com",
-        "运行方式：浏览器本地运行（数据存储于本机 IndexedDB，无需服务器）",
+        "访问方式：通过浏览器访问 https://xinqiao.ninkoro.com（唯一访问入口）",
+        "数据存储：本机浏览器 IndexedDB（隐私友好，无需服务器）",
         "演示数据：客户生日关怀助手_产品展示数据.xlsx（48 位客户）",
     ]:
         para(doc, line, size=10.5, color=MUTED, align=WD_ALIGN_PARAGRAPH.CENTER, after=6)
@@ -337,13 +338,10 @@ def build():
     # ---------- 2 快速开始 ----------
     h1(doc, "2  快速开始")
     h2(doc, "2.1  访问方式")
-    for item in [
-        "在线访问（推荐）：https://xinqiao.ninkoro.com，支持 PWA 安装与离线使用；",
-        "本地直接使用：构建后双击 dist/index.html（单文件自包含，无需安装任何服务）；",
-        "本地开发预览：运行 npm run preview 后访问 http://localhost:4173；",
-    ]:
-        bullet(doc, item)
+    para(doc, "心桥的唯一访问入口为网页地址：https://xinqiao.ninkoro.com。使用电脑或手机浏览器打开即可使用，无需安装任何软件；首次访问后支持断网离线查看与记录，也可将网页添加到桌面或手机主屏获得更接近 App 的体验（见 2.2、2.3 节）。")
+    add_note(doc, "重要提示", "请始终通过 https://xinqiao.ninkoro.com 访问心桥；使用其他来源的副本或离线文件无法保证功能完整与数据安全。")
     h2(doc, "2.2  安装为应用（PWA）")
+    para(doc, "以下安装方式均基于同一网页地址 xinqiao.ninkoro.com，仅是“把网页快捷方式添加到桌面/主屏”，并非独立的分发渠道，数据与网页版完全一致。")
     numbered(doc, "使用 Chrome 或 Edge 浏览器打开 https://xinqiao.ninkoro.com；")
     numbered(doc, "点击地址栏右侧的“安装”图标，或通过菜单选择“安装应用”；")
     numbered(doc, "桌面或手机主屏出现应用图标后，即可像普通应用一样使用，断网也能查看与记录。")
@@ -509,7 +507,8 @@ def build():
     # ---------- 9 FAQ ----------
     h1(doc, "9  常见问题（FAQ）")
     qa = [
-        ("直接双击页面是空白怎么办？", "请使用构建后的 dist/index.html（单文件），或通过本地服务 / 在线地址访问；PWA 安装与离线能力需要 https 或 localhost 环境。"),
+        ("如何访问心桥？", "唯一访问入口为网页 https://xinqiao.ninkoro.com，使用 Chrome / Edge / Safari 打开即可；可将网页添加到桌面或主屏幕作为快捷方式。数据保存在本机浏览器，清除浏览器数据前请先导出备份。"),
+        ("浏览器提示无法打开页面怎么办？", "请检查网络连接与 https://xinqiao.ninkoro.com 地址是否完整，稍后刷新重试；如有疑问可联系网站管理员。"),
         ("客户数据会不会上传？", "不会。全部数据仅保存在本机浏览器（IndexedDB），可通过“设置 → 数据导出”备份。"),
         ("如何登记客户家属？", "进入客户详情页 → “家属关系” → 新增家属，选择关系类型（夫妻 / 子女 / 父母 / 其他），可按客户编号或姓名搜索添加关联客户（双向自动同步），或仅填写姓名与备注。"),
         ("iPhone / iPad 上如何像 App 一样使用？", "用 Safari 打开 https://xinqiao.ninkoro.com → 点击“分享” → “添加到主屏幕”，主屏幕即可生成应用图标，全屏使用。"),
@@ -535,10 +534,10 @@ def build():
             ["产品名称", "心桥"],
             ["产品定位", "客户生日关怀助手（品牌口号：为你搭建与客户之间心的桥梁）"],
             ["在线访问", "https://xinqiao.ninkoro.com"],
-            ["版本", "V1.0"],
+            ["版本", "V1.1"],
             ["技术栈", "React + TypeScript + Vite + IndexedDB"],
             ["数据存储", "本机浏览器 IndexedDB（本地优先，隐私友好）"],
-            ["部署方式", "个人网站（xinqiao.ninkoro.com）/ 本地单文件（dist/index.html）"],
+            ["访问方式", "浏览器访问 https://xinqiao.ninkoro.com（唯一入口）"],
             ["演示数据", "48 位客户（demo/客户生日关怀助手_产品展示数据.xlsx）"],
             ["版权标识", "Powered by Ninkoro.com"],
             ["更新日期", "2026-08-05"],
@@ -552,6 +551,7 @@ def build():
         doc,
         ["操作", "入口"],
         [
+            ["访问心桥", "浏览器打开 https://xinqiao.ninkoro.com"],
             ["查看今日生日客户", "首页 → 今日生日"],
             ["查看未来 7 天客户", "首页 → 未来 7 天生日 / 提醒页"],
             ["新增客户", "客户 → 新增客户"],
