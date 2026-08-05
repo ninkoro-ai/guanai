@@ -50,6 +50,8 @@ export function RecordFormModal({
           createdAt: Date.now(),
         });
         toast.show('已保存维护记录');
+        // 完成每日关怀后通知应用层：可弹出“及时导出数据”的友情提醒（每日一次）
+        window.dispatchEvent(new CustomEvent('xinqiao:care-completed'));
       }
       onClose();
     } finally {

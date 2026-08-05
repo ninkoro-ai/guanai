@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { Cake } from 'lucide-react';
 import BottomNav from './components/BottomNav';
+import { ExportReminderModal } from './components/ExportReminderModal';
 import { useToast } from './components/Toast';
 import { CustomersPage } from './pages/CustomersPage';
 import { CustomerDetailPage } from './pages/CustomerDetailPage';
@@ -11,6 +12,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { readSettings, writeSettings, type AppSettings } from './settings';
 import { formatTodayHeading } from './utils/date';
 import { ensureFamilySync } from './family';
+import { markExportReminderShown, shouldShowExportReminder } from './exportReminder';
 
 export type Tab = 'home' | 'customers' | 'reminders' | 'settings';
 
@@ -18,10 +20,22 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [detailId, setDetailId] = useState<number | null>(null);
   const [settings, setSettings] = useState<AppSettings>(readSettings);
+  const [reminderOpen, setReminderOpen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
     void ensureFamilySync();
+  }, []);
+
+  // 完成每日关怀任务后，弹出“及时导出数据”的友情提醒（每日最多一次）
+  useEffect(() => {
+    const onCareCompleted = () => {
+      if (!shouldShowExportReminder()) return;
+      markExportReminderShown();
+      setReminderOpen(true);
+    };
+    window.addEventListener('xinqiao:care-completed', onCareCompleted);
+    return () => window.removeEventListener('xinqiao:care-completed', onCareCompleted);
   }, []);
 
   const updateSettings = (patch: Partial<AppSettings>) => {
@@ -59,6 +73,14 @@ export default function App() {
         )}
       </main>
       <BottomNav tab={tab} onChange={switchTab} />
+      <ExportReminderModal
+        open={reminderOpen}
+        onClose={() => setReminderOpen(false)}
+        onExport={() => {
+          setReminderOpen(false);
+          switchTab('settings');
+        }}
+      />
     </div>
   );
 }

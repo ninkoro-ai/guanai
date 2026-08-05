@@ -28,11 +28,10 @@ function pad2(n: number): string {
 export function downloadImportTemplate(): void {
   const ws = XLSX.utils.aoa_to_sheet([
     HEADERS,
-    ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年', '华兴制造集团', '总经理', '是'],
+    ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年', '华兴制造集团', '总经理', '否'],
     ['C002', '王女士', '08-15', '女', '服务业', 'B类', '', '', '', '否'],
-    ['C003', '陈先生', '1990年8月5日', '男', '建筑业', 'C类', '', '恒达建筑', '项目经理', ''],
   ]);
-  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 8 }];
+  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 13 }, { wch: 6 }, { wch: 10 }, { wch: 10 }, { wch: 18 }, { wch: 16 }, { wch: 12 }, { wch: 6 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '客户');
   XLSX.writeFile(wb, '客户生日关怀助手_导入模板.xlsx');
@@ -198,26 +197,32 @@ export function downloadErrorReport(errors: ImportError[]): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function exportData(customers: Customer[], records: ContactRecord[], familyMembers: FamilyMember[]): void {
+export function buildExportWorkbook(customers: Customer[], records: ContactRecord[], familyMembers: FamilyMember[]): XLSX.WorkBook {
   const byId = new Map<number, Customer>();
   customers.forEach((c) => {
     if (c.id != null) byId.set(c.id, c);
   });
+
+  // 轻量化：空值写 null（SheetJS 会跳过空单元格），并设置紧凑列宽，减小导出体积
+  const compact = (v: string | undefined | null): string | null => (v ? v : null);
+
   const wb = XLSX.utils.book_new();
 
   const cws = XLSX.utils.aoa_to_sheet([
     HEADERS,
-    ...customers.map((c) => [c.customerNo, c.displayName, c.birthday, c.gender, c.industry, `${c.level}类`, c.remark, c.company ?? '', c.position ?? '', c.starred ? '是' : '否']),
+    ...customers.map((c) => [c.customerNo, c.displayName, c.birthday, c.gender, c.industry, `${c.level}类`, compact(c.remark), compact(c.company), compact(c.position), c.starred ? '是' : '否']),
   ]);
+  cws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 6 }, { wch: 10 }, { wch: 10 }, { wch: 22 }, { wch: 16 }, { wch: 12 }, { wch: 6 }];
   XLSX.utils.book_append_sheet(wb, cws, '客户');
 
   const rws = XLSX.utils.aoa_to_sheet([
     ['客户编号', '客户简称', '日期', '方式', '备注'],
     ...records.map((r) => {
       const c = byId.get(r.customerId);
-      return [c?.customerNo ?? '', c?.displayName ?? '', r.contactDate, r.contactType, r.remark];
+      return [c?.customerNo ?? '', c?.displayName ?? '', r.contactDate, r.contactType, compact(r.remark)];
     }),
   ]);
+  rws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 28 }];
   XLSX.utils.book_append_sheet(wb, rws, '维护记录');
 
   const fws = XLSX.utils.aoa_to_sheet([
@@ -232,10 +237,16 @@ export function exportData(customers: Customer[], records: ContactRecord[], fami
         m.relationType,
         linked?.customerNo ?? '',
         linked?.displayName ?? '',
-        m.remark,
+        compact(m.remark),
       ];
     }),
   ]);
+  fws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 22 }];
   XLSX.utils.book_append_sheet(wb, fws, '家属关系');
+  return wb;
+}
+
+export function exportData(customers: Customer[], records: ContactRecord[], familyMembers: FamilyMember[]): void {
+  const wb = buildExportWorkbook(customers, records, familyMembers);
   XLSX.writeFile(wb, '客户生日关怀助手_导出.xlsx');
 }

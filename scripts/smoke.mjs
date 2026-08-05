@@ -178,6 +178,11 @@ try {
   await page.getByRole('button', { name: '完成维护' }).first().click();
   await page.locator('#record-remark').fill('客户表示感谢');
   await page.getByRole('button', { name: '保存记录' }).click();
+  // 完成关怀后弹出“数据备份提醒”（每日一次）
+  await page.locator('dialog.modal[open]', { hasText: '数据备份提醒' }).waitFor({ state: 'visible' });
+  await page.screenshot({ path: path.join(SHOT_DIR, 'reminder.png') });
+  await page.getByRole('button', { name: '稍后再说' }).click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
   await page.waitForSelector('.done-tag');
   await page.screenshot({ path: path.join(SHOT_DIR, 'home-done.png') });
 

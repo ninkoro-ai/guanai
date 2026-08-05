@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as XLSX from 'xlsx';
-import { buildErrorReport, parseFlexibleBirthday, parseImportFile } from './excel';
+import { buildErrorReport, buildExportWorkbook, parseFlexibleBirthday, parseImportFile } from './excel';
 
 function makeFile(rows: unknown[][]): File {
   const ws = XLSX.utils.aoa_to_sheet(rows);
@@ -156,5 +156,42 @@ describe('buildErrorReport', () => {
   it('includes line numbers', () => {
     const report = buildErrorReport([{ line: 3, message: '生日日期不存在，请检查年月日是否正确' }]);
     expect(report).toContain('第3行：生日日期不存在');
+  });
+});
+
+describe('buildExportWorkbook', () => {
+  it('produces lightweight sheets: skips empty cells and sets compact column widths', () => {
+    const wb = buildExportWorkbook(
+      [
+        {
+          id: 1,
+          customerNo: 'C001',
+          displayName: '刘先生',
+          birthday: '1988-08-20',
+          gender: '男',
+          industry: '制造业',
+          level: 'A',
+          remark: '',
+          createdAt: 1,
+        },
+      ],
+      [
+        { id: 1, customerId: 1, contactDate: '2026-08-05', contactType: '电话', remark: '客户表示感谢', createdAt: 1 },
+      ],
+      [
+        { id: 1, customerId: 1, displayName: '王女士', relationType: '夫妻', remark: '', createdAt: 1 },
+      ],
+    );
+
+    const cws = wb.Sheets['客户'];
+    expect(cws['!ref']).toBeDefined();
+    // 空值不应写入空字符串单元格（备注/公司/职位列为空时被跳过）
+    for (let c = 6; c <= 8; c += 1) {
+      const addr = XLSX.utils.encode_cell({ r: 1, c });
+      expect(cws[addr]).toBeUndefined();
+    }
+    expect(cws['!cols']).toHaveLength(10);
+    expect(wb.Sheets['维护记录']?.['!cols']).toHaveLength(5);
+    expect(wb.Sheets['家属关系']?.['!cols']).toHaveLength(7);
   });
 });
