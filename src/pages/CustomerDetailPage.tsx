@@ -73,9 +73,9 @@ export function CustomerDetailPage({
           <span className="name">
             {customer.starred ? <Star size={14} className="star-mark" fill="currentColor" /> : null}
             {customer.displayName}
+            <GenderBadge gender={customer.gender} />
           </span>
           <span className="row-top-actions">
-            <GenderBadge gender={customer.gender} />
             <LevelBadge level={customer.level} />
             <button
               type="button"

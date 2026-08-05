@@ -73,8 +73,8 @@ export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void 
           <span className="name">
             {c.starred ? <Star size={14} className="star-mark" fill="currentColor" /> : null}
             {c.displayName}
+            <GenderBadge gender={c.gender} />
           </span>
-          <GenderBadge gender={c.gender} />
           <LevelBadge level={c.level} />
         </div>
         <div className="sub">

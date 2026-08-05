@@ -211,7 +211,7 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
                 <GenderBadge gender={c.gender} />
                 <LevelBadge level={c.level} />
               </div>
-              <div className="sub">{c.customerNo} · {c.gender} · {c.industry}</div>
+              <div className="sub">{c.customerNo} · {c.industry}</div>
               <BirthTags profile={birthProfile(c.birthday)} />
             </div>
             <div className="row-side">
