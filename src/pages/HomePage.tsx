@@ -39,7 +39,7 @@ export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void 
       {todayList.map((c) => {
         const done = hasContactToday(records, c.id, dateKey);
         return (
-          <div key={c.id} className={`card${done ? ' card-done' : ''}`}>
+          <div key={c.id} className={`card clickable${done ? ' card-done' : ''}`} onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
             <div className="card-head">
               <span className="name">{c.displayName}</span>
               <LevelBadge level={c.level} />
@@ -50,10 +50,10 @@ export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void 
             </div>
             {c.remark ? <div className="remark">{c.remark}</div> : null}
             <div className="actions">
-              <button type="button" className="btn btn-sm" onClick={() => setBlessFor(c)}><Sparkles size={14} /> 生成祝福</button>
+              <button type="button" className="btn btn-sm" onClick={(e) => { e.stopPropagation(); setBlessFor(c); }}><Sparkles size={14} /> 生成祝福</button>
               {done
                 ? <span className="done-tag"><Check size={14} /> 今日已维护</span>
-                : <button type="button" className="btn btn-primary btn-sm" onClick={() => setContactFor(c)}><Check size={14} /> 完成维护</button>}
+                : <button type="button" className="btn btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); setContactFor(c); }}><Check size={14} /> 完成维护</button>}
             </div>
           </div>
         );

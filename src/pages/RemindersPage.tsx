@@ -57,7 +57,7 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
           {todayA.flatMap((c) => {
             const done = hasContactToday(records, c.id, dateKey);
             return TIMES.map((t, idx) => (
-              <div key={`${c.id}-${t}`} className="timeline-item">
+              <div key={`${c.id}-${t}`} className="timeline-item clickable" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
                 <div className="tl-head">
                   <span className="tl-time">{t}</span>
                   <span className="name">{c.displayName}</span>
@@ -66,7 +66,7 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
                 <div className="tl-foot">
                   {done
                     ? <span className="status status-done">已联系</span>
-                    : <button type="button" className="btn btn-sm" onClick={() => setContactFor(c)}>标记已联系</button>}
+                    : <button type="button" className="btn btn-sm" onClick={(e) => { e.stopPropagation(); setContactFor(c); }}>标记已联系</button>}
                 </div>
               </div>
             ));

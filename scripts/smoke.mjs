@@ -262,6 +262,25 @@ try {
   await page.getByRole('button', { name: '返回', exact: true }).click();
   await page.waitForSelector('.toolbar');
 
+  // 客户界面编辑弹窗内维护家属关系
+  await page.getByRole('button', { name: '编辑 刘先生', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  const editModalText = await page.locator('dialog.modal[open]').innerText();
+  if (!editModalText.includes('家属关系') || !editModalText.includes('王先生')) throw new Error('编辑弹窗缺少家属关系');
+  await page.locator('dialog.modal[open]').getByRole('button', { name: '新增家属', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  const familyDlg = page.locator('dialog.modal[open]').last();
+  await familyDlg.locator('#fm-relation').selectOption('子女');
+  await familyDlg.locator('#fm-search').fill('李女士');
+  await familyDlg.locator('.search-result', { hasText: '李女士' }).first().click();
+  await familyDlg.locator('#fm-remark').fill('在读学生');
+  await familyDlg.getByRole('button', { name: '保存', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('dialog.modal[open]')?.textContent ?? '').includes('李女士'));
+  await page.locator('dialog.modal[open] .family-edit-row', { hasText: '李女士' }).getByRole('button', { name: '删除家属关系', exact: true }).click();
+  await page.waitForFunction(() => !(document.querySelector('dialog.modal[open]')?.textContent ?? '').includes('李女士'));
+  await page.locator('dialog.modal[open]').getByRole('button', { name: '取消', exact: true }).click();
+  await page.waitForSelector('.toolbar');
+
   // 批量导入（含校验、重复、错误报告）
   await page.getByRole('button', { name: '批量导入' }).click();
   await page.waitForSelector('dialog.modal[open]');

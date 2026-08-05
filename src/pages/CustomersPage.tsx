@@ -105,7 +105,7 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
       {list.map((c) => {
         const info = birthdayInfo(c.birthday);
         return (
-          <div key={c.id} className="row">
+          <div key={c.id} className="row clickable" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
             <div className="row-main">
               <div className="row-top">
                 <span className="name">{c.displayName}</span>
@@ -119,13 +119,13 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
               <StatusChip done={hasContactToday(records, c.id, dateKey)} />
             </div>
             <div className="row-btns">
-              <button type="button" className="btn btn-icon btn-ghost" aria-label={`查看 ${c.displayName} 详情`} onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
+              <button type="button" className="btn btn-icon btn-ghost" aria-label={`查看 ${c.displayName} 详情`} onClick={(e) => { e.stopPropagation(); if (c.id != null) onOpenDetail(c.id); }}>
                 <Eye size={15} />
               </button>
-              <button type="button" className="btn btn-icon btn-ghost" aria-label={`编辑 ${c.displayName}`} onClick={() => { setFormCustomer(c); setFormOpen(true); }}>
+              <button type="button" className="btn btn-icon btn-ghost" aria-label={`编辑 ${c.displayName}`} onClick={(e) => { e.stopPropagation(); setFormCustomer(c); setFormOpen(true); }}>
                 <Pencil size={15} />
               </button>
-              <button type="button" className="btn btn-icon btn-ghost delete-btn" aria-label={`删除 ${c.displayName}`} onClick={() => void remove(c)}>
+              <button type="button" className="btn btn-icon btn-ghost delete-btn" aria-label={`删除 ${c.displayName}`} onClick={(e) => { e.stopPropagation(); void remove(c); }}>
                 <Trash2 size={15} />
               </button>
             </div>
