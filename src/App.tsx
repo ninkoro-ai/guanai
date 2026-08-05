@@ -57,7 +57,7 @@ export default function App() {
       <header className="app-header">
         <div className="header-brand">
           <h1 className="app-title">心桥 <span className="app-tag">客户关怀系统</span></h1>
-          <p className="app-slogan">您与客户之间心的桥梁</p>
+          <p className="app-slogan">心的桥梁</p>
         </div>
         <div className="header-center">
           <p className="app-date">{formatTodayHeading()}</p>

@@ -162,7 +162,7 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
       </div>
 
       <div className="note">
-        心桥 · 客户关怀系统 —— 您与客户之间心的桥梁。<br />
+        心桥 · 客户关怀系统 —— 心的桥梁。<br />
         面向银行客户经理，提供生日提醒、祝福辅助、维护记录与家属关系管理，让客户关怀简单、及时、有温度。
       </div>
 

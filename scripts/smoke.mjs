@@ -90,7 +90,7 @@ try {
   const appTitle = await page.title();
   if (!appTitle.includes('客户关怀系统')) throw new Error(`页面标题缺少产品定位: ${appTitle}`);
   const slogan = await page.locator('.app-slogan').innerText();
-  if (!slogan.includes('您与客户之间心的桥梁')) throw new Error('Header 缺少品牌 slogan');
+  if (!slogan.includes('心的桥梁')) throw new Error('Header 缺少品牌 slogan');
   const appTag = await page.locator('.app-tag').innerText();
   if (!appTag.includes('客户关怀系统')) throw new Error('Header 缺少产品定位标签');
   const metaDesc = await page.locator('meta[name="description"]').getAttribute('content');
