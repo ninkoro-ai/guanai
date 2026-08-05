@@ -42,7 +42,8 @@ export default function App() {
     const next = { ...settings, ...patch };
     setSettings(next);
     writeSettings(next);
-    toast.show('提醒设置已保存');
+    if ('advance7' in patch || 'todayA' in patch) toast.show('提醒设置已保存');
+    else toast.show('已保存');
   };
 
   const openDetail = (id: number) => setDetailId(id);
@@ -54,12 +55,17 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <div>
+        <div className="header-brand">
           <h1 className="app-title">心桥 <span className="app-tag">客户关怀系统</span></h1>
           <p className="app-slogan">您与客户之间心的桥梁</p>
+        </div>
+        <div className="header-center">
           <p className="app-date">{formatTodayHeading()}</p>
         </div>
-        <span className="logo"><Cake size={18} /></span>
+        <div className="header-user">
+          <span className="logo"><Cake size={18} /></span>
+          <span className="hi-name">{settings.userName ? `Hi，${settings.userName}` : 'Hi，客户经理'}</span>
+        </div>
       </header>
       <main className="app-main">
         {detailId != null ? (

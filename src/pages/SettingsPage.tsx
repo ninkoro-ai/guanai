@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Download, FileDown, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { BookOpen, Download, FileDown, RotateCcw, Trash2, Upload } from 'lucide-react';
 import { ClearDataModal } from '../components/ClearDataModal';
 import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
@@ -20,6 +20,13 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
 
   useEffect(() => subscribeImportSession(() => setSessionTick((t) => t + 1)), []);
   const lastImport = getLastImport();
+  const [userName, setUserName] = useState(settings.userName);
+  const [team, setTeam] = useState(settings.team);
+
+  useEffect(() => {
+    setUserName(settings.userName);
+    setTeam(settings.team);
+  }, [settings.userName, settings.team]);
 
   const undoLast = async () => {
     if (!window.confirm('确认撤销上次导入？将删除本次新增的客户及其维护记录，并还原被覆盖的客户数据。')) return;
@@ -29,7 +36,39 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
 
   return (
     <div>
-      <h2 className="section-title">数据</h2>
+      <h2 className="section-title">账户与团队</h2>
+      <div className="setting">
+        <div>
+          <div className="setting-label">当前用户名</div>
+          <div className="setting-desc">用于 Header 问候（Hi，用户名）与后续日报汇总</div>
+        </div>
+        <input
+          id="user-name"
+          className="form-control"
+          style={{ maxWidth: 160 }}
+          placeholder="如：张经理"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          onBlur={() => { if (userName.trim() !== settings.userName) onChange({ userName: userName.trim() }); }}
+        />
+      </div>
+      <div className="setting">
+        <div>
+          <div className="setting-label">所属团队</div>
+          <div className="setting-desc">日报/周报汇总数据时按团队归类</div>
+        </div>
+        <input
+          id="team-name"
+          className="form-control"
+          style={{ maxWidth: 160 }}
+          placeholder="如：财富中心一部"
+          value={team}
+          onChange={(e) => setTeam(e.target.value)}
+          onBlur={() => { if (team.trim() !== settings.team) onChange({ team: team.trim() }); }}
+        />
+      </div>
+
+      <h2 className="section-title">数据管理</h2>
       <div className="setting">
         <div>
           <div className="setting-label">下载 Excel 模板</div>
@@ -106,14 +145,22 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
         </span>
       </div>
 
-      <h2 className="section-title">隐私说明</h2>
+      <h2 className="section-title">帮助与关于</h2>
+      <div className="setting">
+        <div>
+          <div className="setting-label">用户手册（PDF）</div>
+          <div className="setting-desc">最新版使用说明：产品定位、品牌 slogan 与全部功能</div>
+        </div>
+        <a className="btn btn-sm" href="./心桥_产品使用文档.pdf" target="_blank" rel="noopener noreferrer">
+          <BookOpen size={14} /> 查看 / 下载
+        </a>
+      </div>
       <div className="note">
         仅保存：行内客户编号、客户简称、生日、性别、行业、客户等级、备注。<br />
         不保存：身份证号码、银行账号、完整客户姓名、交易信息。<br />
         所有数据仅存储在本机浏览器中，不上传服务器。
       </div>
 
-      <h2 className="section-title">关于心桥</h2>
       <div className="note">
         心桥 · 客户关怀系统 —— 您与客户之间心的桥梁。<br />
         面向银行客户经理，提供生日提醒、祝福辅助、维护记录与家属关系管理，让客户关怀简单、及时、有温度。

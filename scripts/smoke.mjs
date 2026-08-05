@@ -359,6 +359,16 @@ try {
 
   // 设置页：创作者标识 + 清空所有数据（三次确认）
   await page.getByRole('button', { name: '设置' }).click();
+  // 设置页分组与账户信息
+  const settingsText = await page.locator('.app-main').innerText();
+  for (const group of ['账户与团队', '数据管理', '提醒设置', '帮助与关于']) {
+    if (!settingsText.includes(group)) throw new Error(`设置页缺少分组: ${group}`);
+  }
+  const pdfLink = await page.locator('a[href$=".pdf"]').count();
+  if (pdfLink === 0) throw new Error('设置页缺少用户手册 PDF 入口');
+  await page.locator('#user-name').fill('张经理');
+  await page.locator('#user-name').blur();
+  await page.waitForFunction(() => (document.querySelector('.hi-name')?.textContent ?? '').includes('Hi，张经理'));
   const creator = await page.locator('.creator-mark').innerText();
   if (!creator.includes('Powered by Ninkoro.com')) throw new Error('创作者标识缺失');
   await page.getByRole('button', { name: '清空数据' }).click();

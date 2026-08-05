@@ -57,6 +57,10 @@ try {
       }
     }
     window.Date = MockDate;
+    localStorage.setItem(
+      'birthday-care.settings.v1',
+      JSON.stringify({ advance7: true, todayA: true, userName: '张经理', team: '财富中心一部' }),
+    );
   });
 
   const errors = [];
