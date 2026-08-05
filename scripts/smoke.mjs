@@ -361,11 +361,10 @@ try {
   await page.getByRole('button', { name: '设置' }).click();
   // 设置页分组与账户信息
   const settingsText = await page.locator('.app-main').innerText();
-  for (const group of ['账户与团队', '数据管理', '提醒设置', '帮助与关于']) {
+  for (const group of ['账户与团队', '数据管理', '提醒设置']) {
     if (!settingsText.includes(group)) throw new Error(`设置页缺少分组: ${group}`);
   }
-  const pdfLink = await page.locator('a[href$=".pdf"]').count();
-  if (pdfLink === 0) throw new Error('设置页缺少用户手册 PDF 入口');
+  if (settingsText.includes('帮助与关于')) throw new Error('设置页不应再包含帮助与关于分组');
   await page.locator('#user-name').fill('张经理');
   await page.locator('#user-name').blur();
   await page.waitForFunction(() => (document.querySelector('.hi-name')?.textContent ?? '').includes('Hi，张经理'));
