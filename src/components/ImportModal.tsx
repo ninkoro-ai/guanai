@@ -27,12 +27,20 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
 
   const handleFile = async (f: File | undefined) => {
     if (!f) return;
+    if (f.size > 10 * 1024 * 1024) {
+      toast.show('文件过大，请上传 10MB 以内的 Excel 文件');
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
     setParsing(true);
     try {
       const existing = await db.customers.toArray();
       const result = await parseImportFile(f, new Set(existing.map((c) => c.customerNo)));
       setParsed(result);
       setStep('check');
+    } catch {
+      toast.show('文件解析失败，请确认是有效的 Excel 文件');
+      if (fileRef.current) fileRef.current.value = '';
     } finally {
       setParsing(false);
     }
@@ -60,6 +68,8 @@ export function ImportModal({ open, onClose }: { open: boolean; onClose: () => v
               industry: dup.row.industry,
               level: dup.row.level,
               remark: dup.row.remark,
+              company: dup.row.company,
+              position: dup.row.position,
             });
           }
         }

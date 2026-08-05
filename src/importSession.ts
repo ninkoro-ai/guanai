@@ -40,9 +40,11 @@ export function clearLastImport(): void {
 export async function undoLastImport(): Promise<boolean> {
   const info = lastImport;
   if (!info) return false;
-  await db.transaction('rw', db.customers, db.records, async () => {
+  await db.transaction('rw', db.customers, db.records, db.familyMembers, async () => {
     if (info.addedIds.length > 0) {
       await db.records.where('customerId').anyOf(info.addedIds).delete();
+      await db.familyMembers.where('customerId').anyOf(info.addedIds).delete();
+      await db.familyMembers.where('linkedCustomerId').anyOf(info.addedIds).delete();
       await db.customers.bulkDelete(info.addedIds);
     }
     for (const u of info.updated) {

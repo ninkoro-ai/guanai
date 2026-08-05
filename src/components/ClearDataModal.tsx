@@ -6,9 +6,9 @@ import { Modal } from './Modal';
 import { useToast } from './Toast';
 
 const STEPS = [
-  { title: '清空所有数据？', desc: '将删除全部客户与维护记录，此操作无法撤销。', label: '继续' },
-  { title: '再次确认', desc: '所有客户档案与维护记录都会被永久删除。', label: '再次确认' },
-  { title: '最后确认', desc: '即将清空全部数据，删除后不可恢复。', label: '确认清空' },
+  { title: '清空所有数据？', desc: '将删除全部客户、维护记录与家属关系，此操作无法撤销。', label: '继续' },
+  { title: '再次确认', desc: '所有客户档案、维护记录与家属关系都会被永久删除。', label: '再次确认' },
+  { title: '最后确认', desc: '即将清空全部数据（含家属关系），删除后不可恢复。', label: '确认清空' },
 ];
 
 export function ClearDataModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -31,9 +31,10 @@ export function ClearDataModal({ open, onClose }: { open: boolean; onClose: () =
     if (busy) return;
     setBusy(true);
     try {
-      await db.transaction('rw', db.customers, db.records, async () => {
+      await db.transaction('rw', db.customers, db.records, db.familyMembers, async () => {
         await db.customers.clear();
         await db.records.clear();
+        await db.familyMembers.clear();
       });
       clearLastImport();
       toast.show('已清空所有数据');

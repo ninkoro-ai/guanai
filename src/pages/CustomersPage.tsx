@@ -8,7 +8,7 @@ import { StatusChip } from '../components/StatusChip';
 import { useToast } from '../components/Toast';
 import { INDUSTRIES, LEVELS, levelOrder } from '../constants';
 import { db, hasContactToday, type Customer, type Level } from '../db';
-import { birthdayInfo, currentMonth, todayKey } from '../utils/date';
+import { birthdayInfo, birthdayMonth, currentMonth, todayKey } from '../utils/date';
 
 type TimeFilter = 'all' | 'today' | 'week' | 'month';
 type LevelFilter = 'all' | Level;
@@ -41,7 +41,7 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
       const info = birthdayInfo(c.birthday);
       if (time === 'today' && !info.isToday) return false;
       if (time === 'week' && !(info.days >= 1 && info.days <= 7)) return false;
-      if (time === 'month' && c.birthday.slice(5, 7) !== month) return false;
+      if (time === 'month' && birthdayMonth(c.birthday) !== month) return false;
       if (industry !== 'all' && c.industry !== industry) return false;
       const query = q.trim();
       if (query && !c.displayName.includes(query) && !c.customerNo.includes(query)) return false;

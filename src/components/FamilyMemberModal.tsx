@@ -147,7 +147,7 @@ export function FamilyMemberModal({
           <div className="search-results" role="listbox" aria-label="客户搜索结果">
             {results.length === 0 && <div className="empty">未找到匹配客户</div>}
             {results.slice(0, 8).map((c) => (
-              <button key={c.id} type="button" className="search-result" onClick={() => select(c)}>
+              <button key={c.id} type="button" role="option" aria-selected={false} className="search-result" onClick={() => select(c)}>
                 <span className="name">{c.displayName}</span>
                 <span className="sub">{c.customerNo} · {c.industry}</span>
               </button>

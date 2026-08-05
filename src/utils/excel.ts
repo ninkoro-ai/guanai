@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { INDUSTRIES } from '../constants';
-import type { ContactRecord, Customer, Gender, Level } from '../db';
+import type { ContactRecord, Customer, FamilyMember, Gender, Level } from '../db';
 
 export interface ImportError {
   line: number;
@@ -251,7 +251,7 @@ export function downloadErrorReport(errors: ImportError[]): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function exportData(customers: Customer[], records: ContactRecord[]): void {
+export function exportData(customers: Customer[], records: ContactRecord[], familyMembers: FamilyMember[]): void {
   const byId = new Map<number, Customer>();
   customers.forEach((c) => {
     if (c.id != null) byId.set(c.id, c);
@@ -272,5 +272,23 @@ export function exportData(customers: Customer[], records: ContactRecord[]): voi
     }),
   ]);
   XLSX.utils.book_append_sheet(wb, rws, '维护记录');
+
+  const fws = XLSX.utils.aoa_to_sheet([
+    ['客户编号', '客户简称', '家属姓名', '关系', '关联客户编号', '关联客户简称', '备注'],
+    ...familyMembers.map((m) => {
+      const owner = byId.get(m.customerId);
+      const linked = m.linkedCustomerId != null ? byId.get(m.linkedCustomerId) : undefined;
+      return [
+        owner?.customerNo ?? '',
+        owner?.displayName ?? '',
+        m.displayName,
+        m.relationType,
+        linked?.customerNo ?? '',
+        linked?.displayName ?? '',
+        m.remark,
+      ];
+    }),
+  ]);
+  XLSX.utils.book_append_sheet(wb, fws, '家属关系');
   XLSX.writeFile(wb, '客户生日关怀助手_导出.xlsx');
 }

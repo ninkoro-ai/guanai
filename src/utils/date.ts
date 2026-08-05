@@ -8,14 +8,29 @@ export interface BirthdayInfo {
   isToday: boolean;
 }
 
+/** 校验真实日历日期（含闰年）；无年份时按闰年处理，允许 02-29 */
+export function isRealDate(month: number, day: number, year?: number): boolean {
+  if (!Number.isInteger(month) || !Number.isInteger(day)) return false;
+  if (month < 1 || month > 12 || day < 1) return false;
+  const y = year ?? 2000;
+  const maxDay = new Date(Date.UTC(y, month, 0)).getUTCDate();
+  return day <= maxDay;
+}
+
 export function parseBirthday(v: string): string | null {
   const s = String(v ?? '').trim();
   const m = s.match(/^(\d{4}-)?(\d{2})-(\d{2})$/);
   if (!m) return null;
+  const year = m[1] ? Number(m[1].slice(0, 4)) : undefined;
   const month = Number(m[2]);
   const day = Number(m[3]);
-  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  if (!isRealDate(month, day, year)) return null;
   return s;
+}
+
+/** 取生日的月份段（兼容 YYYY-MM-DD 与 MM-DD） */
+export function birthdayMonth(birthday: string): string {
+  return birthday.slice(-5, -3);
 }
 
 export function birthdayInfo(birthday: string, today = new Date()): BirthdayInfo {

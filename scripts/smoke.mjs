@@ -177,6 +177,21 @@ try {
   if (!countAfterSearch.includes('1 位客户')) throw new Error(`搜索计数异常: ${countAfterSearch}`);
   await page.locator('.search input').fill('');
 
+  // 本月生日筛选应包含仅月日生日客户（王先生 08-10）
+  await page.getByRole('group', { name: '按时间筛选' }).getByRole('button', { name: '本月生日', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('3 位客户'));
+  await page.getByRole('group', { name: '按时间筛选' }).getByRole('button', { name: '全部', exact: true }).click();
+
+  // 表单拒绝不存在的日期（02-31）
+  await page.getByRole('button', { name: '新增客户', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('#add-no').fill('C20260099');
+  await page.locator('#add-name').fill('测试客户');
+  await page.locator('#add-birthday').fill('02-31');
+  await page.getByRole('button', { name: '保存客户', exact: true }).click();
+  await page.waitForSelector('.form-error');
+  await page.getByRole('button', { name: '取消', exact: true }).click();
+
   // 客户详情页：历史维护记录 + 二次编辑
   await page.getByRole('button', { name: '查看 刘先生 详情' }).click();
   await page.waitForSelector('.detail-view');

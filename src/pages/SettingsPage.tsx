@@ -16,6 +16,7 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
   const toast = useToast();
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
+  const familyMembers = useLiveQuery(() => db.familyMembers.toArray(), []) ?? [];
 
   useEffect(() => subscribeImportSession(() => setSessionTick((t) => t + 1)), []);
   const lastImport = getLastImport();
@@ -61,8 +62,8 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
           type="button"
           className="btn btn-sm"
           onClick={() => {
-            exportData(customers, records);
-            toast.show('已导出全部客户与维护记录');
+            exportData(customers, records, familyMembers);
+            toast.show('已导出客户、维护记录与家属关系');
           }}
         >
           <FileDown size={14} /> 导出
@@ -80,7 +81,7 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
       <div className="setting setting-danger">
         <div>
           <div className="setting-label">清空所有数据</div>
-          <div className="setting-desc">删除全部客户与维护记录，需三次确认</div>
+          <div className="setting-desc">删除全部客户、维护记录与家属关系，需三次确认</div>
         </div>
         <button type="button" className="btn btn-sm btn-danger-soft" onClick={() => setClearOpen(true)}><Trash2 size={14} /> 清空数据</button>
       </div>
