@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Check, Sparkles, Star } from 'lucide-react';
 import { BirthTags } from '../components/BirthTags';
 import { BlessingModal } from '../components/BlessingModal';
+import { GenderBadge } from '../components/GenderBadge';
 import { LevelBadge } from '../components/LevelBadge';
 import { RecordFormModal } from '../components/RecordFormModal';
 import { levelOrder } from '../constants';
@@ -73,6 +74,7 @@ export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void 
             {c.starred ? <Star size={14} className="star-mark" fill="currentColor" /> : null}
             {c.displayName}
           </span>
+          <GenderBadge gender={c.gender} />
           <LevelBadge level={c.level} />
         </div>
         <div className="sub">

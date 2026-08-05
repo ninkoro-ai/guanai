@@ -1,12 +1,24 @@
-import { db, type RelationType } from './db';
+import { db, type Gender, type RelationType } from './db';
 
-/** 关系类型 → 反向从属关系（用于双向自动同步） */
-export const REVERSE_RELATION: Record<RelationType, RelationType> = {
-  夫妻: '夫妻',
-  子女: '父母',
-  父母: '子女',
-  其他: '其他',
-};
+/**
+ * 关系类型 → 反向从属关系（用于双向自动同步）。
+ * 具体化关系需要结合主人性别：如“儿子/女儿”的反向是“父亲/母亲”，
+ * “父亲/母亲”的反向是“儿子/女儿”。
+ */
+export function reverseRelation(relation: RelationType, ownerGender: Gender = '未知'): RelationType {
+  switch (relation) {
+    case '老公': return '老婆';
+    case '老婆': return '老公';
+    case '儿子':
+    case '女儿': return ownerGender === '男' ? '父亲' : ownerGender === '女' ? '母亲' : '父母';
+    case '父亲':
+    case '母亲': return ownerGender === '男' ? '儿子' : ownerGender === '女' ? '女儿' : '子女';
+    case '夫妻': return '夫妻';
+    case '子女': return '父母';
+    case '父母': return '子女';
+    default: return '其他';
+  }
+}
 
 export interface FamilyMemberInput {
   customerId: number;
@@ -15,6 +27,8 @@ export interface FamilyMemberInput {
   linkedCustomerId?: number;
   /** 未关联存量客户时登记的生日（可选，加入生日提醒） */
   birthday?: string;
+  /** 家属客户编号（可选，便于独立检索） */
+  customerNo?: string;
   remark: string;
 }
 
@@ -55,15 +69,18 @@ async function insertMemberWithReverse(input: FamilyMemberInput, remarkMode: 'ap
       relationType: input.relationType,
       linkedCustomerId: linked.id,
       birthday: '',
+      customerNo: '',
       remark: '',
       createdAt: now,
     });
+    const reverse = reverseRelation(input.relationType, owner.gender);
     await db.familyMembers.add({
       customerId: linked.id,
       displayName: owner.displayName,
-      relationType: REVERSE_RELATION[input.relationType] ?? '其他',
+      relationType: reverse,
       linkedCustomerId: owner.id,
       birthday: '',
+      customerNo: '',
       remark: '',
       createdAt: now,
     });
@@ -73,6 +90,7 @@ async function insertMemberWithReverse(input: FamilyMemberInput, remarkMode: 'ap
       displayName: input.displayName,
       relationType: input.relationType,
       birthday: input.birthday?.trim() || undefined,
+      customerNo: input.customerNo?.trim() || undefined,
       remark: input.remark,
       createdAt: Date.now(),
     });
@@ -152,7 +170,7 @@ export async function ensureFamilySync(): Promise<void> {
       await db.familyMembers.add({
         customerId: r.linkedCustomerId,
         displayName: owner.displayName,
-        relationType: REVERSE_RELATION[r.relationType] ?? '其他',
+        relationType: reverseRelation(r.relationType, owner.gender),
         linkedCustomerId: r.customerId,
         remark: r.remark,
         createdAt: r.createdAt,

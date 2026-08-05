@@ -26,6 +26,7 @@ export function FamilyMemberModal({
   const [interacted, setInteracted] = useState(false);
   const [name, setName] = useState('');
   const [birthday, setBirthday] = useState('');
+  const [customerNo, setCustomerNo] = useState('');
   const [remark, setRemark] = useState('');
   const [remarkTouched, setRemarkTouched] = useState(false);
   const [error, setError] = useState('');
@@ -49,6 +50,7 @@ export function FamilyMemberModal({
     setRemark('');
     setRemarkTouched(false);
     setBirthday(member?.birthday ?? '');
+    setCustomerNo(member?.customerNo ?? '');
   }, [open, member]);
 
   useEffect(() => {
@@ -111,6 +113,7 @@ export function FamilyMemberModal({
         relationType,
         linkedCustomerId: currentSelected?.id,
         birthday: birthdayValue,
+        customerNo: currentSelected == null ? (customerNo.trim() || undefined) : undefined,
         remark: effectiveRemark.trim(),
       };
       if (isEdit && member?.id != null) {
@@ -188,6 +191,15 @@ export function FamilyMemberModal({
               onChange={(e) => setBirthday(e.target.value)}
             />
             <p className="field-hint">家属不一定是存量客户，无需客户编号；填写生日后自动进入与标准客户一致的提醒序列</p>
+            <label htmlFor="fm-customerNo">家属客户编号（选填，便于独立检索）</label>
+            <input
+              id="fm-customerNo"
+              className="form-control"
+              placeholder="如：J20260001"
+              value={customerNo}
+              onChange={(e) => setCustomerNo(e.target.value)}
+            />
+            <p className="field-hint">为家属单独编号后，可在客户搜索中按编号或姓名检索到</p>
           </>
         )}
         <label htmlFor="fm-remark">备注（关联客户时同步到其本人信息）</label>

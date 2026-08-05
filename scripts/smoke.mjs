@@ -158,6 +158,18 @@ try {
   await page.locator('#filter-star').selectOption('all');
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('3 位客户'));
 
+  // 性别智能识别：先生/哥/男士 → 男，女士/姐/妹 → 女；结果可手动修改
+  await page.getByRole('button', { name: '新增客户', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('#add-name').fill('赵女士');
+  const autoGender = await page.locator('#add-gender').inputValue();
+  if (autoGender !== '女') throw new Error(`性别智能识别失败: ${autoGender}`);
+  await page.locator('#add-gender').selectOption('男');
+  const manualGender = await page.locator('#add-gender').inputValue();
+  if (manualGender !== '男') throw new Error('智能匹配结果无法手动修改');
+  await page.locator('dialog.modal[open]').getByRole('button', { name: '取消', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
+
   // 编辑客户
   await page.getByRole('button', { name: '编辑 刘先生' }).click();
   await page.waitForSelector('dialog.modal[open]');
@@ -345,6 +357,7 @@ try {
   await page.locator('#fm-relation').selectOption('子女');
   await page.locator('#fm-name').fill('小刘');
   await page.locator('#fm-birthday').fill('08-04');
+  await page.locator('#fm-customerNo').fill('J20260001');
   await page.locator('#fm-remark').fill('在海外读书');
   await page.getByRole('button', { name: '保存', exact: true }).click();
   await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
@@ -363,6 +376,13 @@ try {
   if (!remindersFamilyText.includes('小刘')) throw new Error('提醒页家属生日缺失');
   await page.getByRole('button', { name: '客户', exact: true }).click();
   await page.waitForSelector('.toolbar');
+  // 家属客户编号可独立检索
+  await page.locator('.search input').fill('J20260001');
+  await page.waitForFunction(() => (document.querySelector('.app-main')?.textContent ?? '').includes('家属搜索结果'));
+  const famSearchText = (await page.locator('.app-main').textContent()) ?? '';
+  if (!famSearchText.includes('小刘') || !famSearchText.includes('子女') || !famSearchText.includes('J20260001')) throw new Error('家属编号检索失败');
+  await page.locator('.search input').fill('');
+  await page.waitForTimeout(200);
 
   // 批量导入（含校验、重复、错误报告）
   await page.getByRole('button', { name: '批量导入' }).click();
@@ -437,7 +457,7 @@ try {
   await page.getByRole('button', { name: '查看 刘先生 详情', exact: true }).click();
   await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('周女士'));
   const demoDetailText = await page.locator('.detail-view').innerText();
-  if (!demoDetailText.includes('夫妻') || !demoDetailText.includes('生日：')) throw new Error('演示家属关系样本缺失');
+  if (!demoDetailText.includes('老婆') || !demoDetailText.includes('生日：')) throw new Error('演示家属关系样本缺失');
   await page.getByRole('button', { name: '返回' }).click();
   await page.waitForSelector('.toolbar');
   // 关闭演示模式：恢复真实数据（已清空，互不影响）

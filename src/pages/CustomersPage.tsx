@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { Eye, Pencil, Plus, Search, Star, Trash2, Upload } from 'lucide-react';
 import { BirthTags } from '../components/BirthTags';
 import { CustomerFormModal } from '../components/CustomerFormModal';
+import { GenderBadge } from '../components/GenderBadge';
 import { ImportModal } from '../components/ImportModal';
 import { LevelBadge } from '../components/LevelBadge';
 import { StatusChip } from '../components/StatusChip';
@@ -26,6 +27,7 @@ const PAGE_SIZE = 20;
 
 export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
+  const familyMembers = useLiveQuery(() => db.familyMembers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
   const [q, setQ] = useState('');
   const [level, setLevel] = useState<LevelFilter>('all');
@@ -72,6 +74,20 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pageRows = list.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  const queryTrim = q.trim();
+  const customerById = new Map<number, Customer>();
+  customers.forEach((c) => {
+    if (c.id != null) customerById.set(c.id, c);
+  });
+  // 家属检索：自由登记家属（含客户编号）可像标准客户一样按编号/姓名查询
+  const familyHits = queryTrim
+    ? familyMembers.filter(
+        (m) =>
+          m.linkedCustomerId == null
+          && (m.customerNo?.includes(queryTrim) || m.displayName.includes(queryTrim)),
+      )
+    : [];
 
   const remove = async (c: Customer) => {
     const id = c.id;
@@ -151,7 +167,36 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
         </div>
       </div>
 
-      {total === 0 && <div className="empty">没有符合条件的客户</div>}
+      {total === 0 && familyHits.length === 0 && <div className="empty">没有符合条件的客户</div>}
+
+      {familyHits.length > 0 ? (
+        <>
+          <p className="count">家属搜索结果 · 共 {familyHits.length} 位</p>
+          {familyHits.map((m) => {
+            const owner = m.customerId != null ? customerById.get(m.customerId) : undefined;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                className="row clickable"
+                onClick={() => { if (m.customerId != null) onOpenDetail(m.customerId); }}
+              >
+                <div className="row-main">
+                  <div className="row-top">
+                    <span className="name">{m.displayName}</span>
+                    <span className="badge relation-badge">{m.relationType} · 家属</span>
+                  </div>
+                  <div className="sub">
+                    {m.customerNo ? `${m.customerNo} · ` : ''}所属客户：{owner?.displayName ?? '未知'}
+                    {m.birthday ? ` · 生日：${birthdayInfo(m.birthday).label}` : ''}
+                  </div>
+                </div>
+                <div className="row-side"><span className="days">查看</span></div>
+              </button>
+            );
+          })}
+        </>
+      ) : null}
 
       {pageRows.map((c) => {
         const info = birthdayInfo(c.birthday);
@@ -163,6 +208,7 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
                   {c.starred ? <Star size={13} className="star-mark" fill="currentColor" /> : null}
                   {c.displayName}
                 </span>
+                <GenderBadge gender={c.gender} />
                 <LevelBadge level={c.level} />
               </div>
               <div className="sub">{c.customerNo} · {c.gender} · {c.industry}</div>

@@ -14,6 +14,8 @@
   --b-soft: light-dark(#e6f2fa, #14303f);
   --c: light-dark(#78716c, #a8a29e);
   --c-soft: light-dark(#f0ece9, #2d2925);
+  --gender-f: light-dark(#b5316a, #f2a6c1);
+  --gender-f-soft: light-dark(#fbe7ef, #3a2030);
   --ok: light-dark(#15803d, #5ecb8d);
   --ok-soft: light-dark(#e6f5ec, #14301f);
   --warn: light-dark(#b45309, #f0a34b);
@@ -90,6 +92,9 @@ input, select, textarea { font-size: 16px; }
 .badge-a { background: var(--a-soft); color: var(--a); }
 .badge-b { background: var(--b-soft); color: var(--b); }
 .badge-c { background: var(--c-soft); color: var(--c); }
+.badge-gender-m { background: var(--b-soft); color: var(--b); }
+.badge-gender-f { background: var(--gender-f-soft); color: var(--gender-f); }
+.badge-gender-u { background: var(--c-soft); color: var(--c); }
 .relation-badge { background: var(--b-soft); color: var(--b); }
 
 .status { font-size: 11px; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
@@ -145,6 +150,8 @@ input, select, textarea { font-size: 16px; }
 
 .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
 .row { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+button.row { width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+button.row:hover { border-color: var(--primary); }
 .row-main { min-width: 0; flex: 1; }
 .row-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
 .row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }

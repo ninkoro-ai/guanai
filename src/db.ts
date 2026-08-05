@@ -3,7 +3,7 @@ import Dexie, { type EntityTable } from 'dexie';
 export type Level = 'A' | 'B' | 'C';
 export type Gender = '男' | '女' | '未知';
 export type ContactType = '电话' | '微信';
-export type RelationType = '夫妻' | '子女' | '父母' | '其他';
+export type RelationType = '老公' | '老婆' | '儿子' | '女儿' | '父亲' | '母亲' | '夫妻' | '子女' | '父母' | '其他';
 
 export interface Customer {
   id?: number;
@@ -43,6 +43,8 @@ export interface FamilyMember {
   linkedCustomerId?: number;
   /** 生日（YYYY-MM-DD 或 MM-DD，可选）：未关联存量客户时填写，可加入与标准客户一致的生日提醒 */
   birthday?: string;
+  /** 家属客户编号（可选）：便于像标准客户一样单独检索 */
+  customerNo?: string;
   remark: string;
   createdAt: number;
 }

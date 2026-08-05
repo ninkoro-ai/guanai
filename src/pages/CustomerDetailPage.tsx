@@ -5,6 +5,7 @@ import { BirthTags } from '../components/BirthTags';
 import { BlessingModal } from '../components/BlessingModal';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import { FamilyMemberModal } from '../components/FamilyMemberModal';
+import { GenderBadge } from '../components/GenderBadge';
 import { LevelBadge } from '../components/LevelBadge';
 import { RecordFormModal } from '../components/RecordFormModal';
 import { useToast } from '../components/Toast';
@@ -74,6 +75,7 @@ export function CustomerDetailPage({
             {customer.displayName}
           </span>
           <span className="row-top-actions">
+            <GenderBadge gender={customer.gender} />
             <LevelBadge level={customer.level} />
             <button
               type="button"
@@ -132,6 +134,7 @@ export function CustomerDetailPage({
                   ? <button type="button" className="link-name" onClick={() => onOpenDetail(linked.id!)}>{m.displayName}</button>
                   : <span className="name">{m.displayName}</span>}
                 {linked && <span className="sub">已关联客户</span>}
+                {!linked && m.customerNo ? <span className="sub">{m.customerNo}</span> : null}
               </div>
               <div className="row-btns">
                 <button type="button" className="btn btn-icon btn-ghost" aria-label="编辑家属关系" onClick={() => { setEditingMember(m); setFamilyOpen(true); }}>

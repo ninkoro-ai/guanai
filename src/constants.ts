@@ -6,7 +6,8 @@ export const GENDERS = ['男', '女', '未知'] as const;
 
 export const LEVELS: Level[] = ['A', 'B', 'C'];
 
-export const RELATION_TYPES: RelationType[] = ['夫妻', '子女', '父母', '其他'];
+// 直系亲属具体化：老公/老婆/儿子/女儿/父亲/母亲；保留 夫妻/子女/父母 兼容存量数据
+export const RELATION_TYPES: RelationType[] = ['老公', '老婆', '儿子', '女儿', '父亲', '母亲', '夫妻', '子女', '父母', '其他'];
 
 export const LEVEL_LABELS: Record<Level, string> = {
   A: 'A类重点客户',

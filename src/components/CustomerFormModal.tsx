@@ -5,6 +5,7 @@ import { GENDERS, INDUSTRIES, LEVELS, LEVEL_LABELS } from '../constants';
 import { db, type Customer, type FamilyMember, type Level } from '../db';
 import { deleteFamilyMember } from '../family';
 import { birthdayInfo, birthProfile, parseFlexibleBirthday } from '../utils/date';
+import { inferGenderFromName } from '../utils/gender';
 import { BirthTags } from './BirthTags';
 import { FamilyMemberModal } from './FamilyMemberModal';
 import { Modal } from './Modal';
@@ -15,6 +16,7 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
   const [name, setName] = useState('');
   const [birthday, setBirthday] = useState('');
   const [gender, setGender] = useState<Customer['gender']>('未知');
+  const [genderManual, setGenderManual] = useState(false);
   const [industry, setIndustry] = useState<string>(INDUSTRIES[0]);
   const [level, setLevel] = useState<Level>('C');
   const [remark, setRemark] = useState('');
@@ -43,6 +45,7 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
       setName(customer.displayName);
       setBirthday(customer.birthday);
       setGender(customer.gender);
+      setGenderManual(true);
       setIndustry(customer.industry);
       setLevel(customer.level);
       setRemark(customer.remark);
@@ -53,6 +56,7 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
       setName('');
       setBirthday('');
       setGender('未知');
+      setGenderManual(false);
       setIndustry(INDUSTRIES[0]);
       setLevel('C');
       setRemark('');
@@ -131,7 +135,21 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
             </div>
             <div>
               <label htmlFor="add-name">客户简称 *</label>
-              <input id="add-name" className="form-control" placeholder="刘先生" value={name} onChange={(e) => setName(e.target.value)} />
+              <input
+                id="add-name"
+                className="form-control"
+                placeholder="刘先生"
+                value={name}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setName(next);
+                  // 未手动选择性别时，按简称智能识别（先生/哥/男士 → 男；女士/姐/妹 → 女）
+                  if (!genderManual) {
+                    const inferred = inferGenderFromName(next);
+                    if (inferred) setGender(inferred);
+                  }
+                }}
+              />
             </div>
           </div>
           <label htmlFor="add-birthday">生日 *</label>
@@ -140,9 +158,10 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
           <div className="form-grid">
             <div>
               <label htmlFor="add-gender">性别</label>
-              <select id="add-gender" className="form-control" value={gender} onChange={(e) => setGender(e.target.value as Customer['gender'])}>
+              <select id="add-gender" className="form-control" value={gender} onChange={(e) => { setGender(e.target.value as Customer['gender']); setGenderManual(true); }}>
                 {GENDERS.map((g) => <option key={g}>{g}</option>)}
               </select>
+              <p className="field-hint">可按简称智能识别（先生/哥/男士 → 男；女士/姐/妹 → 女），可手动修改</p>
             </div>
             <div>
               <label htmlFor="add-level">客户等级</label>
@@ -193,6 +212,7 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
                         </div>
                       ) : (
                         <div className="sub">
+                          {m.customerNo ? <span>编号：{m.customerNo}</span> : null}
                           {m.birthday ? <span>生日：{birthdayInfo(m.birthday).label}</span> : null}
                           {m.birthday ? <BirthTags profile={birthProfile(m.birthday)} /> : null}
                           {m.remark ? <span className="record-body">{m.remark}</span> : null}

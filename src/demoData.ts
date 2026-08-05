@@ -46,23 +46,23 @@ export const DEMO_CUSTOMERS: Array<Customer & { id: number }> = [
 
 /** 家属关系：含已关联客户（双向自动同步）与仅登记姓名的自由条目 */
 export const DEMO_FAMILY: Array<Omit<FamilyMember, 'id'>> = [
-  // 已关联：刘先生 ↔ 周女士（夫妻）
-  { customerId: 1, displayName: '周女士', relationType: '夫妻', linkedCustomerId: 3, remark: '', createdAt: T },
-  { customerId: 3, displayName: '刘先生', relationType: '夫妻', linkedCustomerId: 1, remark: '', createdAt: T },
-  // 已关联：王女士 ↔ 吴先生（夫妻）
-  { customerId: 5, displayName: '吴先生', relationType: '夫妻', linkedCustomerId: 6, remark: '', createdAt: T },
-  { customerId: 6, displayName: '王女士', relationType: '夫妻', linkedCustomerId: 5, remark: '', createdAt: T },
-  // 已关联：苏先生 ↔ 秦女士（夫妻）
-  { customerId: 30, displayName: '秦女士', relationType: '夫妻', linkedCustomerId: 26, remark: '', createdAt: T },
-  { customerId: 26, displayName: '苏先生', relationType: '夫妻', linkedCustomerId: 30, remark: '', createdAt: T },
-  // 已关联：何先生 ↔ 李女士（夫妻）
-  { customerId: 4, displayName: '李女士', relationType: '夫妻', linkedCustomerId: 10, remark: '', createdAt: T },
-  { customerId: 10, displayName: '何先生', relationType: '夫妻', linkedCustomerId: 4, remark: '', createdAt: T },
-  // 仅登记姓名（自由条目，演示关系备注）
-  { customerId: 1, displayName: '小刘', relationType: '子女', birthday: '2003-06-12', remark: '在海外读书', createdAt: T },
-  { customerId: 2, displayName: '陈小雅', relationType: '子女', birthday: '1995-03-08', remark: '即将接班，关注公司治理', createdAt: T },
-  { customerId: 13, displayName: '孙母', relationType: '父母', birthday: '1948-11-03', remark: '关注养老理财', createdAt: T },
-  { customerId: 25, displayName: '朱太太', relationType: '夫妻', birthday: '1970-08-05', remark: '喜欢茶文化，可作礼品参考', createdAt: T },
+  // 已关联：刘先生（男）↔ 周女士（女）
+  { customerId: 1, displayName: '周女士', relationType: '老婆', linkedCustomerId: 3, remark: '', createdAt: T },
+  { customerId: 3, displayName: '刘先生', relationType: '老公', linkedCustomerId: 1, remark: '', createdAt: T },
+  // 已关联：王女士（女）↔ 吴先生（男）
+  { customerId: 5, displayName: '吴先生', relationType: '老公', linkedCustomerId: 6, remark: '', createdAt: T },
+  { customerId: 6, displayName: '王女士', relationType: '老婆', linkedCustomerId: 5, remark: '', createdAt: T },
+  // 已关联：苏先生（男）↔ 秦女士（女）
+  { customerId: 30, displayName: '秦女士', relationType: '老婆', linkedCustomerId: 26, remark: '', createdAt: T },
+  { customerId: 26, displayName: '苏先生', relationType: '老公', linkedCustomerId: 30, remark: '', createdAt: T },
+  // 已关联：何先生（男）↔ 李女士（女）
+  { customerId: 4, displayName: '李女士', relationType: '老婆', linkedCustomerId: 10, remark: '', createdAt: T },
+  { customerId: 10, displayName: '何先生', relationType: '老公', linkedCustomerId: 4, remark: '', createdAt: T },
+  // 仅登记家属（自由条目，含客户编号与生日，可独立检索并加入提醒）
+  { customerId: 1, displayName: '小刘', relationType: '儿子', customerNo: 'J20260001', birthday: '2003-06-12', remark: '在海外读书', createdAt: T },
+  { customerId: 2, displayName: '陈小雅', relationType: '女儿', customerNo: 'J20260002', birthday: '1995-03-08', remark: '即将接班，关注公司治理', createdAt: T },
+  { customerId: 13, displayName: '孙母', relationType: '母亲', customerNo: 'J20260003', birthday: '1948-11-03', remark: '关注养老理财', createdAt: T },
+  { customerId: 25, displayName: '朱太太', relationType: '老婆', customerNo: 'J20260004', birthday: '1970-08-05', remark: '喜欢茶文化，可作礼品参考', createdAt: T },
 ];
 
 /** 维护记录：演示“历史维护记录”与“今日已维护/已联系”状态 */
