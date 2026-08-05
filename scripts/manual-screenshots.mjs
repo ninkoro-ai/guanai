@@ -167,7 +167,7 @@ try {
 
   // 8) 提醒页
   await page.getByRole('button', { name: '提醒', exact: true }).click();
-  await page.waitForSelector('.timeline');
+  await page.waitForSelector('.card-link');
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(SHOT_DIR, '06-reminders.png') });
 

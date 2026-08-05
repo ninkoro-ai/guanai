@@ -1,6 +1,4 @@
 export interface AppSettings {
-  advance7: boolean;
-  todayA: boolean;
   /** 当前用户名（用于 Header 问候与后续日报汇总） */
   userName: string;
   /** 所属团队 */
@@ -11,7 +9,7 @@ export interface AppSettings {
 
 const KEY = 'birthday-care.settings.v1';
 
-const DEFAULTS: AppSettings = { advance7: true, todayA: true, userName: '', team: '', demoMode: false };
+const DEFAULTS: AppSettings = { userName: '', team: '', demoMode: false };
 
 export function readSettings(): AppSettings {
   try {
@@ -19,8 +17,6 @@ export function readSettings(): AppSettings {
     if (!raw) return { ...DEFAULTS };
     const parsed = JSON.parse(raw) as Partial<AppSettings>;
     return {
-      advance7: typeof parsed.advance7 === 'boolean' ? parsed.advance7 : DEFAULTS.advance7,
-      todayA: typeof parsed.todayA === 'boolean' ? parsed.todayA : DEFAULTS.todayA,
       userName: typeof parsed.userName === 'string' ? parsed.userName : DEFAULTS.userName,
       team: typeof parsed.team === 'string' ? parsed.team : DEFAULTS.team,
       demoMode: typeof parsed.demoMode === 'boolean' ? parsed.demoMode : DEFAULTS.demoMode,

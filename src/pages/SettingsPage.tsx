@@ -130,26 +130,6 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
         <button type="button" className="btn btn-sm btn-danger-soft" onClick={() => setClearOpen(true)}><Trash2 size={14} /> 清空数据</button>
       </div>
 
-      <h2 className="section-title">提醒设置</h2>
-      <div className="setting">
-        <div>
-          <div className="setting-label">提前 7 天提醒</div>
-          <div className="setting-desc">生日前 7 天在首页与提醒页显示</div>
-        </div>
-        <span className="switch">
-          <input type="checkbox" checked={settings.advance7} onChange={(e) => onChange({ advance7: e.target.checked })} aria-label="提前7天提醒" />
-        </span>
-      </div>
-      <div className="setting">
-        <div>
-          <div className="setting-label">当天提醒（A类客户）</div>
-          <div className="setting-desc">09:00 / 10:00 / 14:00 三次提醒</div>
-        </div>
-        <span className="switch">
-          <input type="checkbox" checked={settings.todayA} onChange={(e) => onChange({ todayA: e.target.checked })} aria-label="当天提醒" />
-        </span>
-      </div>
-
       <p className="creator-mark">Powered by Ninkoro.com</p>
 
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />

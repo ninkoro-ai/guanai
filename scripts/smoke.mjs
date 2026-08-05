@@ -211,7 +211,7 @@ try {
 
   // 提醒页
   await page.getByRole('button', { name: '提醒' }).click();
-  await page.waitForSelector('.timeline');
+  await page.waitForSelector('.card-link');
   await page.screenshot({ path: path.join(SHOT_DIR, 'reminders.png') });
 
   // 提前 7 天提醒卡片可点击进入客户详情
@@ -221,7 +221,7 @@ try {
   if (!detailText.includes('历史维护记录')) throw new Error('客户详情缺少历史维护记录');
   await page.screenshot({ path: path.join(SHOT_DIR, 'reminder-detail.png') });
   await page.getByRole('button', { name: '返回' }).click();
-  await page.waitForSelector('.timeline');
+  await page.waitForSelector('.card-link');
 
   // 设置页 + 导出
   await page.getByRole('button', { name: '设置' }).click();
@@ -408,7 +408,7 @@ try {
   await page.getByRole('button', { name: '设置' }).click();
   // 设置页分组与账户信息
   const settingsText = await page.locator('.app-main').innerText();
-  for (const group of ['账户与团队', '数据管理', '提醒设置']) {
+  for (const group of ['账户与团队', '演示模式', '数据管理']) {
     if (!settingsText.includes(group)) throw new Error(`设置页缺少分组: ${group}`);
   }
   if (settingsText.includes('帮助与关于')) throw new Error('设置页不应再包含帮助与关于分组');

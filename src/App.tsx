@@ -61,8 +61,7 @@ export default function App() {
     const next = { ...settings, ...patch };
     setSettings(next);
     writeSettings(next);
-    if ('advance7' in patch || 'todayA' in patch) toast.show('提醒设置已保存');
-    else toast.show('已保存');
+    toast.show('已保存');
   };
 
   const openDetail = (id: number) => setDetailId(id);
@@ -93,7 +92,7 @@ export default function App() {
           <>
             {tab === 'home' && <HomePage onOpenDetail={openDetail} />}
             {tab === 'customers' && <CustomersPage onOpenDetail={openDetail} />}
-            {tab === 'reminders' && <RemindersPage settings={settings} onOpenDetail={openDetail} />}
+            {tab === 'reminders' && <RemindersPage onOpenDetail={openDetail} />}
             {tab === 'settings' && <SettingsPage settings={settings} onChange={updateSettings} />}
           </>
         )}

@@ -4,23 +4,16 @@ import { Pencil, Star } from 'lucide-react';
 import { BirthTags } from '../components/BirthTags';
 import { LevelBadge } from '../components/LevelBadge';
 import { RecordFormModal } from '../components/RecordFormModal';
-import { levelOrder } from '../constants';
-import { db, hasContactToday, type ContactRecord, type Customer } from '../db';
+import { db, type ContactRecord, type Customer } from '../db';
 import { buildRemindables } from '../remindable';
-import type { AppSettings } from '../settings';
-import { birthdayInfo, birthProfile, todayKey } from '../utils/date';
+import { birthdayInfo, birthProfile } from '../utils/date';
 
-const TIMES = ['09:00', '10:00', '14:00'];
-const KINDS = ['第一次提醒', '第二次提醒', '第三次提醒'];
-
-export function RemindersPage({ settings, onOpenDetail }: { settings: AppSettings; onOpenDetail: (id: number) => void }) {
+export function RemindersPage({ onOpenDetail }: { onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const familyMembers = useLiveQuery(() => db.familyMembers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
-  const [contactFor, setContactFor] = useState<Customer | null>(null);
   const [editRecord, setEditRecord] = useState<ContactRecord | null>(null);
 
-  const dateKey = todayKey();
   const remindables = buildRemindables(customers, familyMembers);
   const advance = remindables
     .filter((c) => {
@@ -29,9 +22,6 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
     })
     .sort((a, b) => birthdayInfo(a.birthday).days - birthdayInfo(b.birthday).days);
   const todayFamily = remindables.filter((r) => r.kind === 'family' && birthdayInfo(r.birthday).isToday);
-  const todayA = customers
-    .filter((c) => c.level === 'A' && birthdayInfo(c.birthday).isToday)
-    .sort((a, b) => levelOrder(a.level) - levelOrder(b.level));
 
   const byId = new Map<number, Customer>();
   customers.forEach((c) => {
@@ -42,9 +32,8 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
   return (
     <div>
       <h2 className="section-title">提前 7 天提醒</h2>
-      {!settings.advance7 && <div className="empty">已关闭提前 7 天提醒，可在设置中开启</div>}
-      {settings.advance7 && advance.length === 0 && <div className="empty">暂无提前提醒</div>}
-      {settings.advance7 && advance.map((r) => {
+      {advance.length === 0 && <div className="empty">未来 7 天没有待提醒的生日</div>}
+      {advance.map((r) => {
         if (r.kind === 'family') {
           return (
             <button key={r.key} type="button" className="card card-link" onClick={() => { if (r.ownerId != null) onOpenDetail(r.ownerId); }}>
@@ -89,34 +78,6 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
         </button>
       ))}
 
-      <h2 className="section-title">当天提醒（A类客户）</h2>
-      {!settings.todayA && <div className="empty">已关闭当天提醒，可在设置中开启</div>}
-      {settings.todayA && todayA.length === 0 && <div className="empty">今天没有 A 类客户生日</div>}
-      {settings.todayA && todayA.length > 0 && (
-        <div className="timeline">
-          {todayA.flatMap((c) => {
-            const done = hasContactToday(records, c.id, dateKey);
-            return TIMES.map((t, idx) => (
-              <div key={`${c.id}-${t}`} className="timeline-item clickable" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
-                <div className="tl-head">
-                  <span className="tl-time">{t}</span>
-                  <span className="name">
-                    {c.starred ? <Star size={13} className="star-mark" fill="currentColor" /> : null}
-                    {c.displayName}
-                  </span>
-                  <span className="tl-kind">{KINDS[idx]}</span>
-                </div>
-                <div className="tl-foot">
-                  {done
-                    ? <span className="status status-done">已联系</span>
-                    : <button type="button" className="btn btn-sm" onClick={(e) => { e.stopPropagation(); setContactFor(c); }}>标记已联系</button>}
-                </div>
-              </div>
-            ));
-          })}
-        </div>
-      )}
-
       <h2 className="section-title">维护记录</h2>
       {sortedRecords.length === 0 && <div className="empty">暂无维护记录</div>}
       {sortedRecords.map((r) => {
@@ -137,7 +98,6 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
         );
       })}
 
-      {contactFor && <RecordFormModal customer={contactFor} record={null} onClose={() => setContactFor(null)} />}
       {editRecord && (
         <RecordFormModal
           customer={editRecord.customerId != null ? byId.get(editRecord.customerId) ?? null : null}
