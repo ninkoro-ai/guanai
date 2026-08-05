@@ -98,6 +98,14 @@ try {
   await page.screenshot({ path: path.join(SHOT_DIR, '02-customers.png') });
   await page.getByRole('group', { name: '按客户等级筛选' }).getByRole('button', { name: '全部', exact: true }).click();
 
+  // 3.5) 星标筛选（星标客户置顶显示）
+  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: /星标/ }).click();
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('6 位客户'));
+  await page.waitForTimeout(300);
+  await page.screenshot({ path: path.join(SHOT_DIR, '14-star-customers.png') });
+  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: '全部', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('48 位客户'));
+
   // 4) 搜索
   await page.locator('.search input').fill('王');
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('1 位客户'));
@@ -111,6 +119,11 @@ try {
   await page.waitForSelector('dialog.modal[open]');
   await page.locator('#record-remark').fill('客户表示感谢，已预约回访');
   await page.getByRole('button', { name: '保存记录', exact: true }).click();
+  // 完成关怀后弹出“数据备份提醒”（每日一次）
+  await page.locator('dialog.modal[open]', { hasText: '数据备份提醒' }).waitFor({ state: 'visible' });
+  await page.screenshot({ path: path.join(SHOT_DIR, '13-export-reminder.png') });
+  await page.getByRole('button', { name: '稍后再说', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
   await page.waitForSelector('.done-tag');
   await page.waitForSelector('.toast-show', { state: 'hidden' }).catch(() => {});
 
