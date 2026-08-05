@@ -4,7 +4,7 @@ import { Pencil, Save, Trash2, UserPlus } from 'lucide-react';
 import { GENDERS, INDUSTRIES, LEVELS, LEVEL_LABELS } from '../constants';
 import { db, type Customer, type FamilyMember, type Level } from '../db';
 import { deleteFamilyMember } from '../family';
-import { parseBirthday } from '../utils/date';
+import { parseFlexibleBirthday } from '../utils/date';
 import { FamilyMemberModal } from './FamilyMemberModal';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
@@ -61,11 +61,11 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
   }, [open, customer]);
 
   const submit = async () => {
-    const b = parseBirthday(birthday);
+    const b = parseFlexibleBirthday(birthday);
     const noTrim = no.trim();
     const nameTrim = name.trim();
     if (!noTrim || !nameTrim || !b) {
-      setError('请填写客户编号、客户简称和生日（YYYY-MM-DD 或 MM-DD）');
+      setError('请填写客户编号、客户简称和生日（支持 1990-08-05、08-05、1990年8月5日 等格式）');
       return;
     }
     const dup = await db.customers.where('customerNo').equals(noTrim).first();
@@ -133,8 +133,8 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
             </div>
           </div>
           <label htmlFor="add-birthday">生日 *</label>
-          <input id="add-birthday" className="form-control" placeholder="1988-08-20 或 08-20" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
-          <p className="field-hint">无出生年份也可，仅填月日，如 08-20</p>
+          <input id="add-birthday" className="form-control" placeholder="1990-08-20 / 08-20 / 1990年8月20日" value={birthday} onChange={(e) => setBirthday(e.target.value)} />
+          <p className="field-hint">支持 1990-08-05、08-05、1990年8月5日、8月5日 等格式，系统自动识别并统一保存；无出生年份仅填月日亦可</p>
           <div className="form-grid">
             <div>
               <label htmlFor="add-gender">性别</label>

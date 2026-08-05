@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { INDUSTRIES } from '../constants';
 import type { ContactRecord, Customer, FamilyMember, Gender, Level } from '../db';
+import { parseFlexibleBirthday as parseFlexibleString } from './date';
 
 export interface ImportError {
   line: number;
@@ -65,35 +66,17 @@ function isValidYMD(y: number, m: number, d: number): boolean {
   return d <= maxDay;
 }
 
-function isValidMD(m: number, d: number): boolean {
-  if (!Number.isInteger(m) || !Number.isInteger(d)) return false;
-  if (m < 1 || m > 12 || d < 1) return false;
-  // 无年份时按闰年判断，允许 02-29
-  const maxDay = new Date(Date.UTC(2000, m, 0)).getUTCDate();
-  return d <= maxDay;
-}
-
 function formatYMD(y: number, m: number, d: number): string {
   return `${y}-${pad2(m)}-${pad2(d)}`;
 }
 
-function formatMD(m: number, d: number): string {
-  return `${pad2(m)}-${pad2(d)}`;
-}
-
 /**
- * 智能解析生日：兼容常见用户输入格式，统一转换为 YYYY-MM-DD 或 MM-DD。
- * 支持：1990-08-05、08-05、1990/08/05、1990.08.05、1990年8月5日、8月5日、8-5 等；
- * 支持 Excel Date 对象、日期序列号（如 45874）以及无分隔符的 19900805 / 0805。
- * 无法解析或日期不存在时返回 null。
+ * 智能解析生日（Excel 场景）：
+ * - 数字单元格：优先按 YYYYMMDD 整数识别，其次按 Excel 日期序列号（如 45874）转换；
+ * - 字符串 / Date：委托给统一解析器（支持 1990-08-05、08-05、1990年8月5日、8-5 等）。
  */
 export function parseFlexibleBirthday(v: unknown): string | null {
   if (v === null || v === undefined || v === '') return null;
-
-  if (v instanceof Date && !Number.isNaN(v.getTime())) {
-    return formatYMD(v.getFullYear(), v.getMonth() + 1, v.getDate());
-  }
-
   if (typeof v === 'number') {
     if (Number.isInteger(v) && v >= 19000101 && v <= 21001231) {
       const y = Math.floor(v / 10000);
@@ -105,49 +88,7 @@ export function parseFlexibleBirthday(v: unknown): string | null {
     if (serial && isValidYMD(serial.y, serial.m, serial.d)) return formatYMD(serial.y, serial.m, serial.d);
     return null;
   }
-
-  if (typeof v !== 'string') return null;
-
-  const s = String(v)
-    .trim()
-    .replace(/(上午|下午|时|点).*$/, '')
-    .replace(/\s+\d{1,2}:\d{2}(:\d{2})?.*$/, '')
-    .replace(/[．。]/g, '.')
-    .replace(/[／]/g, '/')
-    .replace(/[－–—]/g, '-')
-    .replace(/年/g, '-')
-    .replace(/月/g, '-')
-    .replace(/日/g, '')
-    .replace(/\s+/g, '')
-    .trim();
-  if (!s) return null;
-
-  const parts = s.split(/[^0-9]+/).filter(Boolean).map(Number);
-  if (parts.length === 3) {
-    const [y, m, d] = parts;
-    if (isValidYMD(y, m, d)) return formatYMD(y, m, d);
-    return null;
-  }
-  if (parts.length === 2) {
-    const [m, d] = parts;
-    if (isValidMD(m, d)) return formatMD(m, d);
-    return null;
-  }
-  if (parts.length === 1) {
-    const n = parts[0];
-    if (n >= 19000101 && n <= 21001231) {
-      const y = Math.floor(n / 10000);
-      const m = Math.floor(n / 100) % 100;
-      const d = n % 100;
-      if (isValidYMD(y, m, d)) return formatYMD(y, m, d);
-    }
-    if (n >= 101 && n <= 1231) {
-      const m = Math.floor(n / 100);
-      const d = n % 100;
-      if (isValidMD(m, d)) return formatMD(m, d);
-    }
-  }
-  return null;
+  return parseFlexibleString(v);
 }
 
 function isDateLike(v: unknown): boolean {

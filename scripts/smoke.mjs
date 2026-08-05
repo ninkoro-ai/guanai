@@ -109,7 +109,33 @@ try {
 
   await addCustomer('C20260001', '刘先生', '1988-08-04', '男', 'A', '制造业', '合作5年以上，喜欢茶文化', '华兴制造集团', '总经理');
   await addCustomer('C20260004', '王先生', '08-10', '男', 'A', '批发零售', '合作多年');
-  await addCustomer('C20260005', '李女士', '1993-08-11', '女', 'B', '信息技术', '关注理财');
+  await addCustomer('C20260005', '李女士', '1993年8月11日', '女', 'B', '信息技术', '关注理财');
+
+  // 灵活生日格式：中文日期应标准化保存为 YYYY-MM-DD
+  await page.evaluate(async () => {
+    const open = indexedDB.open('birthday-care-assistant');
+    const db = await new Promise((res, rej) => {
+      open.onsuccess = () => res(open.result);
+      open.onerror = () => rej(open.error);
+    });
+    const tx = db.transaction('customers', 'readonly');
+    const store = tx.objectStore('customers');
+    const rows = await new Promise((res) => {
+      const out = [];
+      store.openCursor().onsuccess = (e) => {
+        const cur = e.target.result;
+        if (cur) {
+          out.push(cur.value);
+          cur.continue();
+        } else {
+          res(out);
+        }
+      };
+    });
+    db.close();
+    const li = rows.find((r) => r.displayName === '李女士');
+    if (!li || li.birthday !== '1993-08-11') throw new Error(`灵活生日未标准化保存: ${li && li.birthday}`);
+  });
 
   await page.screenshot({ path: path.join(SHOT_DIR, 'customers.png') });
 
@@ -265,6 +291,7 @@ try {
   // 客户界面编辑弹窗内维护家属关系
   await page.getByRole('button', { name: '编辑 刘先生', exact: true }).click();
   await page.waitForSelector('dialog.modal[open]');
+  await page.waitForFunction(() => (document.querySelector('dialog.modal[open]')?.textContent ?? '').includes('王先生'));
   const editModalText = await page.locator('dialog.modal[open]').innerText();
   if (!editModalText.includes('家属关系') || !editModalText.includes('王先生')) throw new Error('编辑弹窗缺少家属关系');
   await page.locator('dialog.modal[open]').getByRole('button', { name: '新增家属', exact: true }).click();
