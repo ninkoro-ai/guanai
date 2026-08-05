@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>心桥 · 客户关怀系统</title>
+<meta name="description" content="心桥是面向银行客户经理的客户关怀系统——心的桥梁。生日提醒、祝福辅助、维护记录、家属关系一站式完成，离线可用、本地存储零隐私风险。" />
+<meta property="og:title" content="心桥 · 客户关怀系统" />
+<meta property="og:description" content="心桥是面向银行客户经理的客户关怀系统——心的桥梁。生日提醒、祝福辅助、维护记录一站式完成。" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://xinqiao.ninkoro.com/" />
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root {
+    --brand: #C2410C;
+    --brand-strong: #9A3412;
+    --brand-soft: #FDEADF;
+    --cream: #FAF7F3;
+    --surface: #FFFFFF;
+    --text: #211610;
+    --muted: #7C6A5D;
+    --border: #EFE4D9;
+    --shadow: 0 18px 40px -22px rgba(60, 20, 0, 0.28);
+    --radius: 18px;
+    --nav-h: 64px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand: #F26B21;
+      --brand-strong: #FF9A5C;
+      --brand-soft: rgba(242, 107, 33, 0.16);
+      --cream: #100C0A;
+      --surface: #1B1511;
+      --text: #F6EDE5;
+      --muted: #AD9C8D;
+      --border: #332A22;
+      --shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+  }
+  img, video { max-width: 100%; height: auto; display: block; }
+  a { color: var(--brand); text-decoration: none; }
+  section[id] { scroll-margin-top: calc(var(--nav-h) + 12px); }
+
+  .container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .section { padding: 64px 0; }
+  .section-alt { background: var(--surface); }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--brand); font-weight: 700; font-size: 13px;
+    letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px;
+  }
+  .kicker::after { content: ''; width: 34px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--brand), #F97316); }
+  h1, h2, h3, h4 { margin: 0 0 12px; line-height: 1.25; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(42px, 11vw, 72px); font-weight: 900; }
+  h2 { font-size: clamp(28px, 6.4vw, 44px); font-weight: 900; }
+  h3 { font-size: 20px; font-weight: 800; }
+  p { margin: 0 0 14px; }
+  .lead { color: var(--muted); font-size: 17px; }
+  .center { text-align: center; }
+  .muted { color: var(--muted); }
+  .gradient-text { background: linear-gradient(90deg, var(--brand), #F97316); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .brand-gradient { background: linear-gradient(90deg, #C2410C, #F97316); }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 46px; padding: 12px 22px; border-radius: 12px;
+    font-weight: 700; font-size: 15px; line-height: 1.2;
+    border: 2px solid transparent; cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    text-align: center;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 10px 22px -10px rgba(194, 65, 12, 0.7); }
+  .btn-primary:hover { background: var(--brand-strong); }
+  .btn-ghost { border-color: var(--border); color: var(--text); background: transparent; }
+  .btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
+  .btn-block { width: 100%; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 999px;
+    font-size: 13px; font-weight: 600; line-height: 1.2;
+  }
+  .chip-brand { background: var(--brand); color: #fff; }
+  .chip-soft { background: var(--brand-soft); color: var(--brand); }
+  .chip-outline { border: 1px solid var(--border); color: var(--muted); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 26px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--brand); }
+
+  .grid { display: grid; gap: 20px; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+  @media (min-width: 700px) { .grid-2 { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 920px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ===== Nav ===== */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    height: var(--nav-h);
+    background: var(--cream);
+    background: color-mix(in srgb, var(--cream) 86%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .nav-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 900; font-size: 18px; color: var(--text); }
+  .nav-logo { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 15px; }
+  .nav-links { display: none; align-items: center; gap: 22px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .nav-links a:hover { color: var(--brand); }
+  .nav-cta { display: none; }
+  .nav-burger {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; color: var(--text);
+  }
+  .nav-panel {
+    display: none; position: fixed; top: var(--nav-h); left: 0; right: 0; z-index: 49;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 20px 20px; box-shadow: var(--shadow);
+  }
+  .nav-panel.open { display: block; }
+  .nav-panel a { display: block; padding: 13px 4px; font-weight: 600; font-size: 15px; color: var(--text); border-bottom: 1px solid var(--border); }
+  .nav-panel a:last-child { border-bottom: 0; }
+  .nav-panel a:hover { color: var(--brand); }
+  .nav-panel .btn { margin-top: 14px; }
+  @media (min-width: 900px) {
+    .nav-links { display: flex; }
+    .nav-cta { display: inline-flex; }
+    .nav-burger { display: none; }
+    .nav-panel { display: none !important; }
+  }
+
+  /* ===== Hero ===== */
+  .hero { position: relative; padding: 56px 0 72px; overflow: hidden; }
+  .hero::before, .hero::after {
+    content: ''; position: absolute; border-radius: 50%;
+    background: var(--brand); opacity: 0.06; filter: blur(70px); pointer-events: none;
+  }
+  .hero::before { width: 420px; height: 420px; top: -120px; right: -140px; }
+  .hero::after { width: 380px; height: 380px; bottom: -140px; left: -160px; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--brand-soft); color: var(--brand); font-size: 13px; font-weight: 700; margin-bottom: 18px; }
+  .hero h1 { margin-bottom: 6px; }
+  .hero-tagline { font-size: clamp(20px, 4.6vw, 28px); font-weight: 800; color: var(--brand); margin-bottom: 10px; }
+  .hero-position { font-size: clamp(17px, 4vw, 22px); font-weight: 700; color: var(--muted); margin-bottom: 18px; }
+  .hero-desc { max-width: 560px; color: var(--muted); font-size: 16px; }
+  .hero-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 28px; }
+  .hero-ctas { display: flex; flex-direction: column; gap: 12px; max-width: 360px; }
+  @media (min-width: 560px) { .hero-ctas { flex-direction: row; max-width: none; } }
+
+  .hero-stats {
+    margin-top: 42px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  .stat-card {
+    background: linear-gradient(135deg, #C2410C, #EA580C); color: #fff;
+    border-radius: 14px; padding: 16px 14px; text-align: center;
+  }
+  .stat-card b { display: block; font-size: 26px; font-weight: 900; line-height: 1.2; }
+  .stat-card span { font-size: 12px; opacity: 0.9; }
+  .hero-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+
+  /* ===== Sections ===== */
+  .sec-head { margin-bottom: 38px; }
+  .sec-head p { max-width: 640px; }
+  .center .sec-head p { margin-left: auto; margin-right: auto; }
+
+  .pain-card .icon { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; margin-bottom: 20px; color: #fff; }
+  .pain-tag { font-weight: 800; color: var(--brand); font-size: 13px; }
+
+  .banner {
+    position: relative; overflow: hidden; border-radius: 24px;
+    padding: 40px 26px; color: #fff; text-align: center; margin-top: 36px;
+  }
+  .banner::before { content: ''; position: absolute; width: 280px; height: 280px; border-radius: 50%; background: rgba(255,255,255,0.12); filter: blur(60px); top: -90px; right: -60px; }
+  .banner h3 { font-size: clamp(24px, 5vw, 36px); font-weight: 900; margin-bottom: 12px; }
+  .banner p { opacity: 0.92; max-width: 620px; margin: 0 auto; }
+  .banner .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 22px; }
+
+  .value-num { font-size: 58px; font-weight: 900; line-height: 1; color: var(--brand); opacity: 0.18; }
+  .value-card { position: relative; border-top: 4px solid transparent; overflow: hidden; }
+  .value-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #C2410C, #F97316); }
+
+  .story { background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 28px 22px; margin-bottom: 20px; }
+  .story-head { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+  .person { display: flex; align-items: center; gap: 14px; }
+  .avatar { width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 22px; flex-shrink: 0; }
+  .person b { display: block; font-size: 18px; }
+  .person span { font-size: 13px; color: var(--muted); }
+  .story-chip { align-self: flex-start; }
+  .story-body { font-size: 15px; color: var(--muted); }
+  .story-body p { margin-bottom: 12px; }
+  .story-body strong { color: var(--text); }
+  .story-quote { background: var(--cream); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-top: 6px; }
+  .story-quote b { display: block; font-size: 17px; margin-bottom: 6px; }
+  .story-foot { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .story-foot .tag { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; }
+  .story-foot .tag b { display: block; font-size: 14px; }
+  .story-result { margin-left: auto; text-align: right; }
+  .story-result b { display: block; font-size: 24px; font-weight: 900; color: var(--brand); }
+  @media (min-width: 700px) { .story { padding: 34px 32px; } .story-head { flex-direction: row; align-items: center; } .story-chip { margin-left: auto; } }
+
+  .step { position: relative; }
+  .step-num {
+    position: absolute; top: -18px; left: 24px; width: 40px; height: 40px; border-radius: 12px;
+    display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 18px; box-shadow: 0 8px 18px -8px rgba(194,65,12,.6);
+  }
+  .step h3 { margin-top: 34px; }
+  .step-foot { display: flex; align-items: center; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 13px; font-weight: 700; color: var(--brand); }
+
+  .feature { padding: 22px; }
+  .feature .icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px; background: var(--brand-soft); color: var(--brand); }
+  .feature h4 { font-size: 17px; margin-bottom: 8px; }
+  .feature p { font-size: 14px; color: var(--muted); margin: 0; }
+
+  .tech-point .icon { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center; color: #fff; margin-bottom: 16px; }
+  .tech-stack { background: linear-gradient(135deg, #C2410C, #EA580C); color: #fff; border-radius: 24px; padding: 30px 22px; position: relative; overflow: hidden; }
+  .tech-stack h3 { font-size: 26px; }
+  .stack-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+  @media (min-width: 760px) { .stack-grid { grid-template-columns: repeat(4, 1fr); } }
+  .stack-item { background: rgba(255,255,255,0.14); border-radius: 12px; padding: 14px 10px; text-align: center; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .stack-item b { display: block; font-size: 17px; }
+  .stack-item span { font-size: 12px; opacity: 0.85; }
+  .tech-foot { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; margin-top: 8px; }
+
+  .manual-card { display: grid; gap: 22px; align-items: center; }
+  @media (min-width: 760px) { .manual-card { grid-template-columns: 1.4fr 1fr; } }
+  .manual-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 0; }
+
+  footer { background: var(--surface); border-top: 1px solid var(--border); padding: 44px 0 34px; }
+  .footer-grid { display: grid; gap: 28px; }
+  @media (min-width: 700px) { .footer-grid { grid-template-columns: 1fr auto; } }
+  .footer-links { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+  .footer-bottom { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; line-height: 1.9; }
+
+  /* ===== Reveal animation (JS 增强，无 JS 时内容始终可见) ===== */
+  html.js .reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+  html.js .reveal.is-visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.08s; }
+  .reveal-delay-2 { transition-delay: 0.16s; }
+  .reveal-delay-3 { transition-delay: 0.24s; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    html.js .reveal { opacity: 1; transform: none; transition: none; }
+    * { transition: none !important; animation: none !important; }
+  }
+
+  :focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- ===== 导航 ===== -->
+<nav class="nav" aria-label="主导航">
+  <div class="container nav-inner">
+    <a href="#hero" class="nav-brand" aria-label="心桥 首页">
+      <span class="nav-logo brand-gradient">心</span>
+      <span>心桥</span>
+    </a>
+    <div class="nav-links">
+      <a href="#pain">行业痛点</a>
+      <a href="#value">核心价值</a>
+      <a href="#scenarios">使用场景</a>
+      <a href="#quickstart">快速上手</a>
+      <a href="#features">功能矩阵</a>
+      <a href="#tech">技术安全</a>
+    </div>
+    <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener" class="btn btn-primary nav-cta">立即访问</a>
+    <button class="nav-burger" type="button" aria-label="打开菜单" aria-expanded="false" aria-controls="mobile-nav" onclick="toggleNav(this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</nav>
+<div class="nav-panel" id="mobile-nav">
+  <a href="#pain" onclick="closeNav()">行业痛点</a>
+  <a href="#value" onclick="closeNav()">核心价值</a>
+  <a href="#scenarios" onclick="closeNav()">使用场景</a>
+  <a href="#quickstart" onclick="closeNav()">快速上手</a>
+  <a href="#features" onclick="closeNav()">功能矩阵</a>
+  <a href="#tech" onclick="closeNav()">技术安全</a>
+  <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener" class="btn btn-primary">立即访问</a>
+</div>
+
+<!-- ===== Section 1: Hero ===== -->
+<section id="hero" class="hero">
+  <div class="container">
+    <div class="hero-badge">V1.3 全新发布 · 客户关怀系统</div>
+    <h1>心桥</h1>
+    <p class="hero-tagline">心的桥梁</p>
+    <p class="hero-position">银行客户经理专属客户关怀系统</p>
+    <p class="hero-desc">
+      告别 Excel 备忘录、摆脱人工记忆遗漏，<strong style="color:var(--brand)">30 秒</strong>完成客户生日全流程关怀：
+      提前提醒、个性化祝福、维护记录、家属关系，一站式闭环。
+    </p>
+    <div class="hero-chips">
+      <span class="chip chip-brand">离线可用</span>
+      <span class="chip chip-brand">本地存储零隐私风险</span>
+      <span class="chip chip-brand">无需服务器</span>
+      <span class="chip chip-brand">PWA 桌面安装</span>
+      <span class="chip chip-outline">内置演示模式</span>
+    </div>
+    <div class="hero-ctas">
+      <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener" class="btn btn-primary">
+        立即访问
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+      <a href="./心桥_产品使用文档.pdf" download="心桥_产品使用文档.pdf" class="btn btn-ghost">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+        下载用户手册（PDF）
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card"><b>5 位</b><span>今日生日（演示数据）</span></div>
+      <div class="stat-card"><b>8 种</b><span>生日格式自动识别</span></div>
+      <div class="stat-card"><b>7 天</b><span>提前提醒 · A 类三次</span></div>
+    </div>
+    <p class="hero-note">打开即用，无需注册；可在设置页一键开启演示模式体验完整功能。</p>
+  </div>
+</section>
+
+<!-- ===== Section 2: 行业痛点 ===== -->
+<section id="pain" class="section section-alt">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <p class="kicker">PAIN POINTS</p>
+      <h2>客户经理传统维护，<br />3 大无法解决的难题</h2>
+      <p class="lead">手动表格、备忘录与人工记忆，正在悄悄流失客户的情感链接</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card pain-card reveal reveal-delay-1">
+        <div class="icon brand-gradient">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <p class="pain-tag">痛点 01</p>
+        <h3>客户多，生日极易遗漏</h3>
+        <p class="muted">手动表格、手机备忘录无法批量预警，重要 A 类客户错过生日触达，流失客户情感链接。</p>
+      </div>
+      <div class="card pain-card reveal reveal-delay-2">
+        <div class="icon brand-gradient">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <p class="pain-tag">痛点 02</p>
+        <h3>数据合规风险极高</h3>
+        <p class="muted">姓名、账号、身份证、交易信息无法留存，传统表格极易泄露敏感客户信息。</p>
+      </div>
+      <div class="card pain-card reveal reveal-delay-3">
+        <div class="icon brand-gradient">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+        </div>
+        <p class="pain-tag">痛点 03</p>
+        <h3>无沉淀、无追溯</h3>
+        <p class="muted">没有统一维护记录，多年客户往来无存档，公私联动缺少家属关系与画像数据支撑。</p>
+      </div>
+    </div>
+    <div class="banner brand-gradient reveal">
+      <h3>心桥，一次性全部解决</h3>
+      <p>轻量化本地工具，从提醒、关怀、记录、客户管理、家属关系到数据备份，全链路闭环。</p>
+      <div class="chips">
+        <span class="chip chip-soft" style="color:#fff;background:rgba(255,255,255,.2)">生日提醒</span>
+        <span class="chip chip-soft" style="color:#fff;background:rgba(255,255,255,.2)">祝福生成</span>
+        <span class="chip chip-soft" style="color:#fff;background:rgba(255,255,255,.2)">维护记录</span>
+        <span class="chip chip-soft" style="color:#fff;background:rgba(255,255,255,.2)">家属关系</span>
+        <span class="chip chip-soft" style="color:#fff;background:rgba(255,255,255,.2)">画像标签</span>
+        <span class="chip chip-soft" style="color:#fff;background:rgba(255,255,255,.2)">数据备份</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 3: 核心价值 ===== -->
+<section id="value" class="section">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <p class="kicker">CORE VALUES</p>
+      <h2>四大核心价值</h2>
+    </div>
+    <div class="grid grid-2">
+      <div class="card value-card reveal reveal-delay-1">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <span class="value-num">01</span>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        </div>
+        <h3>双重提醒，零遗漏</h3>
+        <p class="muted">提前 7 天全局预警 + A 类客户生日当天三时段提醒，客户列表默认按生日倒计时正序，分页浏览不遗漏任何一位。</p>
+      </div>
+      <div class="card value-card reveal reveal-delay-2">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <span class="value-num">02</span>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <h3>纯本地存储，合规无忧</h3>
+        <p class="muted">全程数据保存在浏览器本地 IndexedDB，不上传云端，仅留存脱敏客户编号与简称；演示模式数据与真实数据分开存储，互不影响。</p>
+      </div>
+      <div class="card value-card reveal reveal-delay-3">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <span class="value-num">03</span>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h3>零成本离线工具</h3>
+        <p class="muted">无后端服务器、无付费数据库、无广告、无埋点，首次访问后离线可用，断网照常使用。</p>
+      </div>
+      <div class="card value-card reveal reveal-delay-4">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <span class="value-num">04</span>
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        </div>
+        <h3>全链路资产沉淀</h3>
+        <p class="muted">自动留存每一次微信/电话关怀记录，支持客户家属双向关联、生日画像标签与星标重点客户，长期经营客户关系。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 4: 使用场景 ===== -->
+<section id="scenarios" class="section section-alt">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <p class="kicker">USE CASES</p>
+      <h2>三大真实使用场景</h2>
+      <p class="lead">生日关怀不是任务，是让客户“被放在心上”的时刻</p>
+    </div>
+
+    <div class="story reveal">
+      <div class="story-head">
+        <div class="person">
+          <div class="avatar brand-gradient">王</div>
+          <div><b>王静</b><span>某城商行零售客户经理</span></div>
+        </div>
+        <span class="chip chip-brand story-chip">独居老人的生日惊喜</span>
+      </div>
+      <div class="story-body">
+        <p><strong>陈阿姨，68 岁</strong>，子女常年在国外，是网点里典型的“沉默客户”。王静把她的信息录入心桥，备注栏写着“<strong style="color:var(--brand)">子女在加拿大，独居，喜欢养花</strong>”。</p>
+        <p>生日当天早上 9 点，A 类客户提醒准时弹出。王静用祝福生成器选了一条温暖话术，又特意加了一句“您上次说的那盆君子兰，夏天记得多通风”，然后拨通了电话。</p>
+        <p>电话那头，陈阿姨愣了一下，声音有点哽咽——<strong style="color:var(--brand)">连她自己都差点忘了今天是生日</strong>。</p>
+        <p>两周后，陈阿姨主动来到网点，把另一张卡里到期的 <strong style="color:var(--brand)">80 万理财</strong>，全部转到了王静所在的银行。</p>
+      </div>
+      <div class="story-quote">
+        <b>“不是钱的事，是有人把我放在心上。”</b>
+        <span class="muted">—— 陈阿姨</span>
+      </div>
+      <div class="story-foot">
+        <span class="tag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>当日提醒<b>三时段预警</b></span></span>
+        <span class="tag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>祝福生成<b>个性化定制</b></span></span>
+        <span class="story-result"><span class="muted" style="font-size:12px">业务结果</span><b>+80 万</b><span class="muted" style="font-size:12px">新增理财</span></span>
+      </div>
+    </div>
+
+    <div class="story reveal">
+      <div class="story-head">
+        <div class="person">
+          <div class="avatar brand-gradient">李</div>
+          <div><b>李建国</b><span>某国有行网点资深客户经理 · 从业 15 年</span></div>
+        </div>
+        <span class="chip chip-brand story-chip">批量导入 127 位存量客户</span>
+      </div>
+      <div class="story-body">
+        <p>李建国手上有 <strong style="color:var(--brand)">127 位</strong> 存量客户，信息分散在三个 Excel、一个旧笔记本和手机备忘录里。他把数据粘贴进导入模板——有的生日是“1972/3/15”，有的是“72 年 3 月”，还有的只有月份，结果<strong style="color:var(--brand)">心桥自动识别转换了所有格式</strong>，127 条只报错 2 条。</p>
+        <p><strong>5 分钟</strong>后全部建档完成，系统自动算出生日倒计时，A/B/C 分级、星标与画像标签一目了然；误导入也能一键撤销。</p>
+        <p>今年上半年，客户生日触达率从不到 60% 提升到 <strong style="color:var(--brand)">100%</strong>，季度新增理财保有量<strong style="color:var(--brand)">同比增长 35%</strong>。</p>
+      </div>
+      <div class="story-foot">
+        <span class="tag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><span>Excel 批量导入<b>8 种格式识别</b></span></span>
+        <span class="tag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg><span>分级与筛选<b>多维下拉</b></span></span>
+        <span class="story-result"><span class="muted" style="font-size:12px">用时</span><b>5 分钟</b><span class="muted" style="font-size:12px">建档完成</span></span>
+      </div>
+    </div>
+
+    <div class="story reveal">
+      <div class="story-head">
+        <div class="person">
+          <div class="avatar brand-gradient">赵</div>
+          <div><b>赵琳</b><span>某股份行私行 + 对公综合客户经理</span></div>
+        </div>
+        <span class="chip chip-brand story-chip">从一个客户挖到一整个家族</span>
+      </div>
+      <div class="story-body">
+        <p><strong>张先生</strong>是赵琳的老客户，企业主、A 类私行客户。用心桥后，赵琳在张先生的档案里登记了家属关系：<strong style="color:var(--brand)">妻子</strong>（关联系统内另一位客户李女士）、<strong style="color:var(--brand)">儿子</strong>、<strong style="color:var(--brand)">父亲</strong>、<strong style="color:var(--brand)">母亲</strong>。每新增一条，系统自动双向同步，家属条目还会显示对方的<strong style="color:var(--brand)">生日倒计时</strong>；给家属填写的备注会跟随到家属本人信息，送礼不错人。</p>
+        <p>去年张先生父亲生日，赵琳<strong style="color:var(--brand)">提前 7 天</strong>收到提醒，准备了一份体检套餐让张先生代为转交。张先生很意外：“<strong>连我爸的生日你都记得</strong>”。</p>
+        <p>后来，张先生把儿子的教育金、妻子的保险规划、甚至父亲名下企业的对公业务，<strong style="color:var(--brand)">陆续都介绍给了赵琳</strong>——一个客户，带出了一整个家族的业务版图。</p>
+      </div>
+      <div class="story-quote">
+        <b>“客户关系不是单点的，是一张网。心桥帮我把这张网织起来了。”</b>
+        <span class="muted">—— 赵琳</span>
+      </div>
+      <div class="story-foot">
+        <span class="tag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg><span>家属关系<b>双向同步</b></span></span>
+        <span class="tag"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>提前预警<b>7 天倒计时</b></span></span>
+        <span class="story-result"><span class="muted" style="font-size:12px">业务结果</span><b>1 → 5</b><span class="muted" style="font-size:12px">家族客户</span></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 4.5: 快速上手 ===== -->
+<section id="quickstart" class="section">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <p class="kicker">QUICK START</p>
+      <h2>3 步上手，5 分钟开始用</h2>
+    </div>
+    <div class="grid grid-3" style="margin-bottom:28px">
+      <div class="card step reveal reveal-delay-1">
+        <span class="step-num brand-gradient">1</span>
+        <h3>导入客户</h3>
+        <p class="muted">下载标准模板，粘贴现有客户信息，一键批量导入——多种生日格式自动识别，误导入可撤销。</p>
+        <div class="step-foot">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Excel 批量导入
+        </div>
+      </div>
+      <div class="card step reveal reveal-delay-2">
+        <span class="step-num brand-gradient">2</span>
+        <h3>设置提醒</h3>
+        <p class="muted">默认开启提前 7 天预警 + A 类客户当日三时段提醒，可按个人习惯在设置中调整。</p>
+        <div class="step-foot">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          多层级提醒
+        </div>
+      </div>
+      <div class="card step reveal reveal-delay-3">
+        <span class="step-num brand-gradient">3</span>
+        <h3>开始使用</h3>
+        <p class="muted">每天打开首页看今日生日清单，一键生成祝福话术，完成后自动留存维护记录。</p>
+        <div class="step-foot">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          自动留痕
+        </div>
+      </div>
+    </div>
+    <div class="center reveal">
+      <p class="lead" style="margin-bottom:0">
+        <span class="chip chip-soft">想先看效果？设置页一键开启演示模式，加载 34 位演示客户（含家属关系与维护记录），与真实数据完全隔离</span>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 5: 功能矩阵 ===== -->
+<section id="features" class="section section-alt">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <p class="kicker">FEATURE MATRIX</p>
+      <h2>完整功能矩阵</h2>
+      <p class="lead">覆盖客户维护全流程，12 项核心能力</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card feature reveal reveal-delay-1">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+        <h4>首页工作台</h4>
+        <p>今日生日、未来 7 天、A 类客户统计一目了然，卡片一键完成维护。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-2">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
+        <h4>客户精细化管理</h4>
+        <p>新增/编辑/删除、编号检索，按距离生日正序分页浏览，底部统计总数。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-3">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></div>
+        <h4>星标与画像标签</h4>
+        <p>星标独立于 ABC 等级；含年份生日自动展示年龄、属相、星座，本命年高亮。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-4">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+        <h4>Excel 智能导入导出</h4>
+        <p>8 种生日格式自动识别、逐行校验、重复处理、导入撤销；三表导出、轻量化文件。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-5">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
+        <h4>多层级生日提醒</h4>
+        <p>提前 7 天全局提醒，A 类客户当日 09:00 / 10:00 / 14:00 三时段提醒。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-6">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></div>
+        <h4>离线祝福生成引擎</h4>
+        <p>按等级、行业、备注关键词本地随机组合，30-80 字、过滤生硬词汇，支持换一换与复制。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-1">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg></div>
+        <h4>维护记录管理</h4>
+        <p>一键新增电话/微信关怀记录、二次编辑、历史追溯，状态自动派生不过期。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-2">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg></div>
+        <h4>家属关系增强</h4>
+        <p>搜索关联、双向自动同步、家属生日倒计时；备注跟随关联人本人，送礼不错人。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-3">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+        <h4>演示模式</h4>
+        <p>内置 34 位演示客户（含家属关系与维护记录），与真实数据隔离，一键开关。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-4">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg></div>
+        <h4>数据备份提醒</h4>
+        <p>完成每日关怀后提醒及时导出（每日一次），导出跳过空单元格，文件更小更快。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-5">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <h4>设置与账户</h4>
+        <p>用户名/团队、提醒开关分组设置；三次确认清空、撤销导入，数据生命周期完整管理。</p>
+      </div>
+      <div class="card feature reveal reveal-delay-6">
+        <div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+        <h4>PWA 跨端平台能力</h4>
+        <p>电脑独立窗口安装、iOS Safari 添加主屏、断网离线可用，分享卡片描述清晰。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 6: 技术安全 ===== -->
+<section id="tech" class="section">
+  <div class="container">
+    <div class="sec-head center reveal">
+      <p class="kicker">PRIVACY &amp; TECH</p>
+      <h2>底层技术架构</h2>
+      <p class="lead">把隐私安全做到极致</p>
+    </div>
+    <div class="grid grid-3" style="margin-bottom:36px">
+      <div class="card tech-point reveal reveal-delay-1">
+        <div class="icon brand-gradient"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/></svg></div>
+        <h4>本地优先存储方案</h4>
+        <p class="muted">采用 IndexedDB 本地数据库，所有客户数据仅保存在当前设备浏览器中，不上传云端。</p>
+      </div>
+      <div class="card tech-point reveal reveal-delay-2">
+        <div class="icon brand-gradient"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></div>
+        <h4>无采集、无埋点、无后台</h4>
+        <p class="muted">不存在服务器、用户行为统计、数据上报。你的数据，永远只属于你自己。</p>
+      </div>
+      <div class="card tech-point reveal reveal-delay-3">
+        <div class="icon brand-gradient"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+        <h4>严格数据边界管控</h4>
+        <p class="muted">仅存储脱敏客户编号与简称，绝不存储身份证、银行卡号等敏感信息，合规适配银行数据管理规范。</p>
+      </div>
+    </div>
+    <div class="tech-stack reveal">
+      <p style="font-weight:700;letter-spacing:.16em;font-size:13px;opacity:.85;text-transform:uppercase;margin-bottom:6px">TECH STACK</p>
+      <h3>技术栈</h3>
+      <div class="stack-grid">
+        <div class="stack-item"><b>React 19</b><span>前端框架</span></div>
+        <div class="stack-item"><b>TypeScript</b><span>类型安全</span></div>
+        <div class="stack-item"><b>Dexie.js</b><span>本地数据库</span></div>
+        <div class="stack-item"><b>SheetJS</b><span>离线 Excel</span></div>
+      </div>
+      <p class="tech-foot">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        千级客户数据交互响应低于 300ms · 演示模式与真实数据双库隔离
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Section 7: 手册下载 ===== -->
+<section id="manual" class="section section-alt">
+  <div class="container">
+    <div class="card manual-card reveal">
+      <div>
+        <p class="kicker">USER MANUAL</p>
+        <h2>最新用户手册（PDF）</h2>
+        <p class="lead">完整使用说明：产品定位、品牌 slogan 与全部功能介绍，含功能演示、常见问题与操作速查。</p>
+        <div class="manual-meta">
+          <span class="chip chip-soft">版本 V1.3</span>
+          <span class="chip chip-soft">30 页 · 含功能图例</span>
+          <span class="chip chip-outline">离线可读</span>
+        </div>
+      </div>
+      <div class="center">
+        <a href="./心桥_产品使用文档.pdf" download="心桥_产品使用文档.pdf" class="btn btn-primary btn-block">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          下载用户手册
+        </a>
+        <p class="muted" style="font-size:13px;margin:12px 0 0">PDF 为独立文件，不占用应用体积</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="nav-brand" style="font-size:22px">
+          <span class="nav-logo brand-gradient" style="width:38px;height:38px">心</span>
+          心桥
+        </div>
+        <p class="muted" style="margin:10px 0 4px;font-weight:600">客户关怀系统</p>
+        <p class="muted" style="font-size:14px">心的桥梁——用一份关怀，连接你与客户的心。</p>
+        <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener" style="font-size:14px;font-weight:600">xinqiao.ninkoro.com</a>
+      </div>
+      <div class="footer-links">
+        <a href="#quickstart">快速上手</a>
+        <a href="#features">功能矩阵</a>
+        <a href="#tech">隐私安全</a>
+        <a href="#manual">下载手册</a>
+        <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener">立即访问</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      本工具仅本地存储客户脱敏信息，合规适配银行客户数据管理规范。<br />
+      © 2026 心桥 · 客户关怀系统. All rights reserved.
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleNav(btn) {
+    const panel = document.getElementById('mobile-nav');
+    const open = panel.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(open));
+    btn.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+  }
+  function closeNav() {
+    document.getElementById('mobile-nav').classList.remove('open');
+    const btn = document.querySelector('.nav-burger');
+    btn.setAttribute('aria-expanded', 'false');
+    btn.setAttribute('aria-label', '打开菜单');
+  }
+
+  // Scroll reveal
+  var reveals = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(function (el) { observer.observe(el); });
+  } else {
+    reveals.forEach(function (el) { el.classList.add('is-visible'); });
+  }
+</script>
+</body>
+</html>
