@@ -16,11 +16,11 @@
     --brand-strong: #9A3412;
     --brand-soft: #FDEADF;
     --cream: #FAF7F3;
-    --surface: #FFFFFF;
+    --surface: #FFFDFA;
     --text: #211610;
     --muted: #7C6A5D;
-    --border: #EFE4D9;
-    --shadow: 0 18px 40px -22px rgba(60, 20, 0, 0.28);
+    --border: #EFE6DB;
+    --shadow: 0 22px 48px -30px rgba(60, 20, 0, 0.20);
     --radius: 18px;
     --nav-h: 64px;
   }
@@ -55,6 +55,7 @@
 
   .container { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 20px; }
   .section { padding: 64px 0; }
+  @media (min-width: 900px) { .section { padding: 92px 0; } }
   .section-alt { background: var(--surface); }
   .kicker {
     display: inline-flex; align-items: center; gap: 8px;
@@ -63,7 +64,7 @@
   }
   .kicker::after { content: ''; width: 34px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--brand), #F97316); }
   h1, h2, h3, h4 { margin: 0 0 12px; line-height: 1.25; letter-spacing: -0.01em; }
-  h1 { font-size: clamp(42px, 11vw, 72px); font-weight: 900; }
+  h1 { font-size: clamp(40px, 9vw, 62px); font-weight: 900; }
   h2 { font-size: clamp(28px, 6.4vw, 44px); font-weight: 900; }
   h3 { font-size: 20px; font-weight: 800; }
   p { margin: 0 0 14px; }
@@ -105,6 +106,7 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
   .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: var(--brand); }
+  @media (min-width: 900px) { .card { padding: 30px; } }
 
   .grid { display: grid; gap: 20px; }
   .grid-2 { grid-template-columns: 1fr; }
@@ -167,16 +169,57 @@
   .hero-ctas { display: flex; flex-direction: column; gap: 12px; max-width: 360px; }
   @media (min-width: 560px) { .hero-ctas { flex-direction: row; max-width: none; } }
 
-  .hero-stats {
-    margin-top: 42px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  /* ===== Hero 产品演示界面（最新版首页） ===== */
+  .hero-inner { display: grid; gap: 44px; align-items: center; }
+  @media (min-width: 900px) {
+    .hero { padding: 72px 0 96px; }
+    .hero-inner { grid-template-columns: 1.04fr 0.96fr; gap: 64px; }
+    .hero-desc { font-size: 17px; }
+    .hero-position { font-size: 20px; }
+    .sec-head { margin-bottom: 52px; }
   }
-  .stat-card {
-    background: linear-gradient(135deg, #C2410C, #EA580C); color: #fff;
-    border-radius: 14px; padding: 16px 14px; text-align: center;
+  .phone {
+    width: min(100%, 320px); margin: 0 auto;
+    border-radius: 30px; padding: 12px;
+    background: linear-gradient(160deg, #232326, #101013);
+    box-shadow: 0 34px 80px -34px rgba(0, 0, 0, 0.5);
   }
-  .stat-card b { display: block; font-size: 26px; font-weight: 900; line-height: 1.2; }
-  .stat-card span { font-size: 12px; opacity: 0.9; }
-  .hero-note { margin-top: 14px; font-size: 13px; color: var(--muted); }
+  .phone-notch { width: 88px; height: 6px; border-radius: 4px; background: #3a3a3e; margin: 2px auto 10px; }
+  .phone-screen {
+    border-radius: 20px; background: #FBF7F2; color: #2B211A;
+    padding: 12px 12px 16px; overflow: hidden; text-align: left;
+  }
+  .ph-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #F0E2D3; }
+  .ph-brand b { display: block; font-size: 13px; font-weight: 800; }
+  .ph-brand i { font-style: normal; font-size: 9px; font-weight: 600; color: #C2410C; border: 1px solid rgba(194, 65, 12, 0.45); border-radius: 999px; padding: 0 5px; margin-left: 4px; vertical-align: 1px; }
+  .ph-brand span { display: block; font-size: 10px; color: #8A6A50; margin-top: 2px; }
+  .ph-date { text-align: center; font-size: 11px; font-weight: 700; color: #2B211A; line-height: 1.4; }
+  .ph-user { text-align: right; font-size: 9px; color: #8A6A50; line-height: 1.5; }
+  .ph-user b { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: #C2410C; color: #fff; font-size: 12px; }
+  .ph-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 10px 0; }
+  .ph-stats div { background: #fff; border: 1px solid #F0E2D3; border-radius: 10px; padding: 8px 4px; text-align: center; }
+  .ph-stats b { display: block; font-size: 18px; font-weight: 800; color: #C2410C; line-height: 1.1; }
+  .ph-stats span { font-size: 9px; color: #8A6A50; }
+  .ph-title { font-size: 12px; font-weight: 800; margin: 12px 0 6px; }
+  .ph-card { background: #fff; border: 1px solid #F0E2D3; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+  .ph-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .ph-card-head b { font-size: 13px; font-weight: 800; }
+  .ph-card-head span { font-size: 9px; color: #B45309; background: #FEF0D6; border-radius: 999px; padding: 1px 6px; white-space: nowrap; }
+  .ph-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 2px; }
+  .ph-tags i, .ph-tags em { font-style: normal; font-size: 9px; color: #8A6A50; background: #FBF3EA; border: 1px solid #F0E2D3; border-radius: 999px; padding: 0 6px; line-height: 1.7; }
+  .ph-tags em { color: #C0392B; background: #FBE9E6; border-color: rgba(192, 57, 43, 0.35); }
+  .ph-sub { font-size: 9px; color: #8A6A50; margin: 4px 0 0; }
+  .ph-remark { font-size: 9px; color: #8A6A50; margin: 4px 0 0; }
+  .ph-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .ph-actions span { font-size: 9px; font-weight: 700; border: 1px solid #E7D5C2; border-radius: 8px; padding: 4px 10px; color: #2B211A; }
+  .ph-actions span.primary { background: #C2410C; border-color: #C2410C; color: #fff; }
+  .ph-up { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #F0E2D3; border-radius: 10px; padding: 7px 10px; margin-bottom: 6px; }
+  .ph-up span { font-size: 10px; font-weight: 700; color: #2B211A; }
+  .ph-up b { flex: 1; font-size: 11px; font-weight: 700; }
+  .ph-up i { font-style: normal; font-size: 9px; color: #C2410C; font-weight: 700; }
+  .ph-nav { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 12px; border-top: 1px solid #F0E2D3; padding-top: 8px; text-align: center; font-size: 9px; color: #8A6A50; }
+  .ph-nav b { color: #C2410C; }
+  .hero-visual-caption { text-align: center; font-size: 12px; color: var(--muted); margin-top: 14px; }
 
   /* ===== Sections ===== */
   .sec-head { margin-bottom: 38px; }
@@ -303,37 +346,79 @@
 <!-- ===== Section 1: Hero ===== -->
 <section id="hero" class="hero">
   <div class="container">
-    <div class="hero-badge">V1.3 全新发布 · 客户关怀系统</div>
-    <h1>心桥</h1>
-    <p class="hero-tagline">心的桥梁</p>
-    <p class="hero-position">银行客户经理专属客户关怀系统</p>
-    <p class="hero-desc">
-      告别 Excel 备忘录、摆脱人工记忆遗漏，<strong style="color:var(--brand)">30 秒</strong>完成客户生日全流程关怀：
-      提前提醒、个性化祝福、维护记录、家属关系，一站式闭环。
-    </p>
-    <div class="hero-chips">
-      <span class="chip chip-brand">离线可用</span>
-      <span class="chip chip-brand">本地存储零隐私风险</span>
-      <span class="chip chip-brand">无需服务器</span>
-      <span class="chip chip-brand">PWA 桌面安装</span>
-      <span class="chip chip-outline">内置演示模式</span>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-badge">V1.3 全新发布 · 客户关怀系统</div>
+        <h1>心桥</h1>
+        <p class="hero-tagline">心的桥梁</p>
+        <p class="hero-position">银行客户经理专属客户关怀系统</p>
+        <p class="hero-desc">
+          告别 Excel 备忘录、摆脱人工记忆遗漏，<strong style="color:var(--brand)">30 秒</strong>完成客户生日全流程关怀：
+          提前提醒、个性化祝福、维护记录、家属关系，一站式闭环。
+        </p>
+        <div class="hero-chips">
+          <span class="chip chip-brand">离线可用</span>
+          <span class="chip chip-brand">本地存储零隐私风险</span>
+          <span class="chip chip-brand">无需服务器</span>
+          <span class="chip chip-brand">PWA 桌面安装</span>
+          <span class="chip chip-outline">内置演示模式</span>
+        </div>
+        <div class="hero-ctas">
+          <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener" class="btn btn-primary">
+            立即访问
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          <a href="./心桥_产品使用文档.pdf" download="心桥_产品使用文档.pdf" class="btn btn-ghost">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+            下载用户手册（PDF）
+          </a>
+        </div>
+      </div>
+
+      <!-- 最新版产品首页演示界面（纯 CSS 绘制，非截图） -->
+      <div class="hero-visual">
+        <div class="phone" role="img" aria-label="心桥客户关怀系统首页演示：今日生日、未来7天提醒与家属关怀">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="ph-header">
+              <div class="ph-brand">
+                <b>心桥<i>客户关怀系统</i></b>
+                <span>心的桥梁</span>
+              </div>
+              <div class="ph-date">8月5日<br />星期三</div>
+              <div class="ph-user"><b>🍰</b><br />Hi，张经理</div>
+            </div>
+            <div class="ph-stats">
+              <div><b>5</b><span>今日生日</span></div>
+              <div><b>5</b><span>未来7天</span></div>
+              <div><b>12</b><span>A类客户</span></div>
+            </div>
+            <p class="ph-title">🎂 今日生日</p>
+            <div class="ph-card">
+              <div class="ph-card-head"><b>⭐ 刘先生</b><span>A类重点客户</span></div>
+              <div class="ph-tags"><em>本命年</em><i>48岁</i><i>属马</i><i>狮子座</i></div>
+              <p class="ph-sub">客户编号：C20260001 · 制造业</p>
+              <p class="ph-remark">合作5年以上，喜欢茶文化</p>
+              <div class="ph-actions"><span>生成祝福</span><span class="primary">完成维护</span></div>
+            </div>
+            <div class="ph-card">
+              <div class="ph-card-head"><b>周女士</b><span>B类重要客户</span></div>
+              <div class="ph-tags"><em>本命年</em><i>36岁</i><i>属马</i><i>狮子座</i></div>
+              <p class="ph-sub">客户编号：C20260003 · 服务业</p>
+            </div>
+            <div class="ph-card">
+              <div class="ph-card-head"><b>何先生</b><span>B类重要客户</span></div>
+              <p class="ph-sub">客户编号：C20260004 · 批发零售（仅月日，不推算标签）</p>
+            </div>
+            <p class="ph-title">未来 7 天生日</p>
+            <div class="ph-up"><span>8月10日</span><b>王先生</b><i>6 天后</i></div>
+            <div class="ph-up"><span>8月12日</span><b>李女士</b><i>7 天后</i></div>
+            <div class="ph-nav"><span>首页</span><b>客户</b><span>提醒</span><span>设置</span></div>
+          </div>
+        </div>
+        <p class="hero-visual-caption">最新版首页 · 生日提醒与画像标签一目了然</p>
+      </div>
     </div>
-    <div class="hero-ctas">
-      <a href="https://xinqiao.ninkoro.com" target="_blank" rel="noopener" class="btn btn-primary">
-        立即访问
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-      </a>
-      <a href="./心桥_产品使用文档.pdf" download="心桥_产品使用文档.pdf" class="btn btn-ghost">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
-        下载用户手册（PDF）
-      </a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat-card"><b>5 位</b><span>今日生日（演示数据）</span></div>
-      <div class="stat-card"><b>8 种</b><span>生日格式自动识别</span></div>
-      <div class="stat-card"><b>7 天</b><span>提前提醒 · A 类三次</span></div>
-    </div>
-    <p class="hero-note">打开即用，无需注册；可在设置页一键开启演示模式体验完整功能。</p>
   </div>
 </section>
 
