@@ -11,9 +11,9 @@ export default defineConfig({
       injectRegister: null,
       includeManifestIcons: false,
       manifest: {
-        name: '客户生日关怀助手',
-        short_name: '生日关怀',
-        description: '面向银行客户经理的轻量化客户关系维护工具',
+        name: '心桥',
+        short_name: '心桥',
+        description: '心桥 - 面向银行客户经理的轻量化客户关系维护工具，为你搭建与客户之间心的桥梁',
         lang: 'zh-CN',
         start_url: './',
         scope: './',

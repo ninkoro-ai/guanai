@@ -35,14 +35,14 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div>
-          <h1 className="app-title">客户生日关怀助手</h1>
+          <h1 className="app-title">心桥</h1>
           <p className="app-date">{formatTodayHeading()}</p>
         </div>
         <span className="logo"><Cake size={18} /></span>
       </header>
       <main className="app-main">
         {detailId != null ? (
-          <CustomerDetailPage customerId={detailId} onBack={() => setDetailId(null)} />
+          <CustomerDetailPage customerId={detailId} onBack={() => setDetailId(null)} onOpenDetail={openDetail} />
         ) : (
           <>
             {tab === 'home' && <HomePage onOpenDetail={openDetail} />}

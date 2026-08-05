@@ -234,7 +234,7 @@ export async function parseImportFile(file: File, existingNos: Set<string>): Pro
 }
 
 export function buildErrorReport(errors: ImportError[]): string {
-  const head = '客户生日关怀助手 - 导入错误报告\n';
+  const head = '心桥 - 导入错误报告\n';
   if (errors.length === 0) return head + '未发现错误。';
   return head + errors.map((e) => `第${e.line}行：${e.message}`).join('\n');
 }

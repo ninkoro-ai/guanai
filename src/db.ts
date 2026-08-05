@@ -3,6 +3,7 @@ import Dexie, { type EntityTable } from 'dexie';
 export type Level = 'A' | 'B' | 'C';
 export type Gender = '男' | '女' | '未知';
 export type ContactType = '电话' | '微信';
+export type RelationType = '夫妻' | '子女' | '父母' | '其他';
 
 export interface Customer {
   id?: number;
@@ -27,14 +28,27 @@ export interface ContactRecord {
   createdAt: number;
 }
 
+export interface FamilyMember {
+  id?: number;
+  customerId: number;
+  displayName: string;
+  relationType: RelationType;
+  /** 关联的系统内客户（可选）；为空表示仅登记姓名 */
+  linkedCustomerId?: number;
+  remark: string;
+  createdAt: number;
+}
+
 export const db = new Dexie('birthday-care-assistant') as Dexie & {
   customers: EntityTable<Customer, 'id'>;
   records: EntityTable<ContactRecord, 'id'>;
+  familyMembers: EntityTable<FamilyMember, 'id'>;
 };
 
-db.version(1).stores({
+db.version(2).stores({
   customers: '++id, customerNo, birthday, level, industry',
   records: '++id, customerId, contactDate',
+  familyMembers: '++id, customerId, linkedCustomerId',
 });
 
 /** 客户当天是否已完成维护（由维护记录派生，避免跨年状态过期） */

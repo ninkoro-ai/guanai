@@ -187,6 +187,29 @@ try {
   await page.locator('#record-remark').fill('客户表示感谢，已确认后续服务');
   await page.getByRole('button', { name: '保存修改' }).click();
   await page.waitForFunction(() => (document.querySelector('.detail-view .record-body')?.textContent ?? '').includes('已确认后续服务'));
+
+  // 家属关系：关联已有客户、自由登记、编辑、删除、关联跳转
+  await page.getByRole('button', { name: '新增家属', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('#fm-relation').selectOption('夫妻');
+  await page.locator('#fm-linked').selectOption({ label: '王先生（C20260004）' });
+  await page.locator('#fm-remark').fill('共同经营批发零售');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('夫妻'));
+  await page.getByRole('button', { name: '新增家属', exact: true }).click();
+  await page.locator('#fm-relation').selectOption('子女');
+  await page.locator('#fm-name').fill('小刘');
+  await page.locator('#fm-remark').fill('在海外读书');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('小刘'));
+  await page.getByRole('button', { name: '编辑家属关系', exact: true }).first().click();
+  await page.locator('#fm-remark').fill('共同经营批发零售，夫妻档');
+  await page.getByRole('button', { name: '保存修改', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('夫妻档'));
+  await page.locator('.detail-view').getByRole('button', { name: '删除家属关系', exact: true }).nth(1).click();
+  await page.waitForFunction(() => !(document.querySelector('.detail-view')?.textContent ?? '').includes('小刘'));
+  await page.getByRole('button', { name: '王先生', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view .card .name')?.textContent ?? '').includes('王先生'));
   await page.getByRole('button', { name: '返回' }).click();
   await page.waitForSelector('.toolbar');
 

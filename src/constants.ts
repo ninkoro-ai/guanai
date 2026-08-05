@@ -1,10 +1,12 @@
-import type { Level } from './db';
+import type { Level, RelationType } from './db';
 
 export const INDUSTRIES = ['制造业', '建筑业', '房地产', '批发零售', '信息技术', '服务业', '金融业', '其他'] as const;
 
 export const GENDERS = ['男', '女', '未知'] as const;
 
 export const LEVELS: Level[] = ['A', 'B', 'C'];
+
+export const RELATION_TYPES: RelationType[] = ['夫妻', '子女', '父母', '其他'];
 
 export const LEVEL_LABELS: Record<Level, string> = {
   A: 'A类重点客户',
