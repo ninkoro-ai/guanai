@@ -137,6 +137,19 @@ describe('parseImportFile', () => {
     expect(r.rows[1].company).toBeUndefined();
     expect(r.rows[1].position).toBeUndefined();
   });
+
+  it('parses optional starred column', async () => {
+    const file = makeFile([
+      ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位', '星标'],
+      ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '', '', '', '是'],
+      ['C002', '王女士', '08-15', '女', '服务业', 'B类', '', '', '', '否'],
+      ['C003', '陈先生', '08-16', '男', '其他', 'C类', '', '', '', ''],
+    ]);
+    const r = await parseImportFile(file, new Set());
+    expect(r.rows[0].starred).toBe(true);
+    expect(r.rows[1].starred).toBe(false);
+    expect(r.rows[2].starred).toBe(false);
+  });
 });
 
 describe('buildErrorReport', () => {

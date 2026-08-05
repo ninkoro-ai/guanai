@@ -95,6 +95,8 @@ input, select, textarea { font-size: 16px; }
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
   background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--text);
@@ -112,7 +114,7 @@ input, select, textarea { font-size: 16px; }
 .btn-icon { padding: 6px; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .search { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; color: var(--muted); }
 .search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 16px; }
 .search input::placeholder { color: var(--muted); }
@@ -161,9 +163,6 @@ button.card-link:hover { border-color: var(--primary); }
 .clickable:hover { border-color: var(--primary); }
 .family-edit { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
 .family-edit-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
-.family-edit-row { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
-.family-edit-row .name { flex: 1; font-size: 13px; min-width: 0; }
-
 .empty { background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center; font-size: 13px; color: var(--muted); }
 
 .timeline { border-left: 2px solid var(--border); margin: 4px 0 0 6px; padding-left: 16px; }
@@ -178,10 +177,25 @@ button.card-link:hover { border-color: var(--primary); }
 .record-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
 .record-body { font-size: 13px; }
 
-.setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.setting { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.setting > div:first-child { flex: 1 1 170px; min-width: 0; }
 .setting-danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
 .setting-label { font-size: 13px; font-weight: 500; }
 .setting-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.tag { font-size: 11px; line-height: 1.5; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+.tag-year { background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 40%, transparent); color: var(--danger); }
+
+.star-mark { color: var(--a); vertical-align: -2px; margin-right: 2px; }
+.star-on { color: var(--a); }
+.row-top-actions { display: inline-flex; align-items: center; gap: 4px; }
+
+.family-edit-row { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; }
+.family-edit-info { flex: 1; min-width: 0; }
+.family-edit-top { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.family-edit-info .sub { gap: 6px; margin-top: 2px; }
+.selected-customer .sub { display: block; margin-top: 2px; }
 
 .note { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.8; }
 .creator-mark { text-align: center; font-size: 12px; color: var(--muted); margin: 24px 0 0; letter-spacing: 0.02em; }
@@ -279,7 +293,7 @@ dialog.modal::backdrop { background: rgb(0 0 0 / 0.45); }
 .modal-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
 .modal-title { font-size: 14px; font-weight: 500; }
 .modal-body { padding: 14px 16px; max-height: min(70dvh, 560px); overflow-y: auto; }
-.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.modal-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
 
 .form label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 4px; }
 .form-control {
@@ -323,4 +337,10 @@ textarea.form-control { resize: vertical; }
 
 @media (max-width: 420px) {
   .form-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 380px) {
+  .btn { padding: 7px 10px; }
+  .btn-sm { padding: 5px 8px; }
+  .setting { padding: 10px 12px; }
 }

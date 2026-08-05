@@ -5,7 +5,7 @@ import * as path from 'node:path';
 const OUT_DIR = path.resolve('demo');
 const OUT_FILE = path.join(OUT_DIR, '客户生日关怀助手_产品展示数据.xlsx');
 
-const HEADERS = ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位'];
+const HEADERS = ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位', '星标'];
 
 // 胡先生一行使用 Excel 日期序列号（1992-04-10），演示序列号自动识别
 const serialDemo = Math.round((Date.UTC(1992, 3, 10) - Date.UTC(1899, 11, 30)) / 86400000);
@@ -91,10 +91,13 @@ const POSITION = {
   C20260045: '渠道经理', C20260046: '项目经理', C20260047: '', C20260048: '总经理',
 };
 
-const ROWS = RAW_ROWS.map((r) => [...r, COMPANY[r[0]] ?? '', POSITION[r[0]] ?? '']);
+// 星标客户：不受 ABC 等级限制的重点标记（含 C 类客户示例）
+const STARRED = new Set(['C20260001', 'C20260004', 'C20260009', 'C20260026', 'C20260036', 'C20260047']);
+
+const ROWS = RAW_ROWS.map((r) => [...r, COMPANY[r[0]] ?? '', POSITION[r[0]] ?? '', STARRED.has(r[0]) ? '是' : '否']);
 
 const ws = XLSX.utils.aoa_to_sheet([HEADERS, ...ROWS]);
-ws['!cols'] = [{ wch: 13 }, { wch: 12 }, { wch: 16 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 30 }, { wch: 18 }, { wch: 12 }];
+ws['!cols'] = [{ wch: 13 }, { wch: 12 }, { wch: 16 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 8 }];
 
 const headerStyle = {
   font: { bold: true, color: { rgb: 'FFFFFF' } },
@@ -133,6 +136,8 @@ const notes = XLSX.utils.aoa_to_sheet([
   ['  · 备注含“喜欢茶文化 / 合作多年 / 授信”等关键词，可触发祝福语个性化；'],
   ['  · 性别含“未知”示例，生日含“仅月日”示例；'],
   ['  · “所属公司 / 职位”为选填字段，可用于公私联动与客户画像。'],
+  ['  · “星标”列可标记重点客户（不受等级限制，如 C 类黄先生、魏女士）；'],
+  ['  · 录入完整年份的客户，系统自动展示年龄、属相、本命年、星座标签。'],
   [''],
   ['提示：导入后可在“设置 → 撤销上次导入”一键回退演示数据。'],
 ]);

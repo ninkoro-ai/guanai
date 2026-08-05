@@ -139,6 +139,14 @@ try {
 
   await page.screenshot({ path: path.join(SHOT_DIR, 'customers.png') });
 
+  // 星标：切换李女士为星标，验证星标筛选
+  await page.locator('.row', { hasText: '李女士' }).getByRole('button', { name: '设为星标 李女士' }).click();
+  await page.waitForFunction(() => document.querySelectorAll('.star-mark').length >= 1);
+  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: /星标/ }).click();
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('1 位客户'));
+  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: '全部', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('3 位客户'));
+
   // 编辑客户
   await page.getByRole('button', { name: '编辑 刘先生' }).click();
   await page.waitForSelector('dialog.modal[open]');
@@ -224,6 +232,7 @@ try {
   await page.waitForSelector('.detail-view .record');
   const detailInfo = await page.locator('.detail-view').innerText();
   if (!detailInfo.includes('华兴制造集团') || !detailInfo.includes('总经理')) throw new Error('公司/职位未展示');
+  if (!detailInfo.includes('38岁') || !detailInfo.includes('属龙') || !detailInfo.includes('狮子座')) throw new Error('生日标签（年龄/属相/星座）未展示');
   const historyBody = await page.locator('.detail-view .record-body').first().innerText();
   if (!historyBody.includes('客户表示感谢')) throw new Error('详情页历史维护记录缺失');
   await page.screenshot({ path: path.join(SHOT_DIR, 'detail.png') });
@@ -258,11 +267,15 @@ try {
   await page.getByRole('button', { name: '保存修改', exact: true }).click();
   await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
   await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('夫妻档'));
+  const familyDetail = await page.locator('.detail-view').innerText();
+  if (!familyDetail.includes('生日：') || !familyDetail.includes('天后')) throw new Error('家属关系未显示关联人生日倒计时');
   // 反向同步：王先生详情应显示“刘先生（夫妻）”
   await page.getByRole('button', { name: '王先生', exact: true }).click();
   await page.waitForFunction(() => (document.querySelector('.detail-view .card .name')?.textContent ?? '').includes('王先生'));
   const wangFamily = await page.locator('.detail-view').innerText();
   if (!wangFamily.includes('刘先生') || !wangFamily.includes('夫妻')) throw new Error('反向夫妻关系未同步');
+  const wangCard = await page.locator('.detail-view .card').innerText();
+  if (!wangCard.includes('共同经营批发零售，夫妻档')) throw new Error('家属备注未同步到关联人自己的信息');
   await page.getByRole('button', { name: '返回', exact: true }).click();
   await page.waitForSelector('.toolbar');
   // 反向同步：李女士详情应显示“刘先生（父母）”

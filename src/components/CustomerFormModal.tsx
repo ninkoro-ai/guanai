@@ -4,7 +4,8 @@ import { Pencil, Save, Trash2, UserPlus } from 'lucide-react';
 import { GENDERS, INDUSTRIES, LEVELS, LEVEL_LABELS } from '../constants';
 import { db, type Customer, type FamilyMember, type Level } from '../db';
 import { deleteFamilyMember } from '../family';
-import { parseFlexibleBirthday } from '../utils/date';
+import { birthdayInfo, birthProfile, parseFlexibleBirthday } from '../utils/date';
+import { BirthTags } from './BirthTags';
 import { FamilyMemberModal } from './FamilyMemberModal';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
@@ -33,6 +34,7 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
     },
     [customer?.id],
   ) ?? [];
+  const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
 
   useEffect(() => {
     if (!open) return;
@@ -174,20 +176,36 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
                 </button>
               </div>
               {family.length === 0 && <div className="empty">暂未登记家属关系</div>}
-              {family.map((m) => (
-                <div key={m.id} className="family-edit-row">
-                  <span className="badge relation-badge">{m.relationType}</span>
-                  <span className="name">{m.displayName}</span>
-                  <div className="row-btns">
-                    <button type="button" className="btn btn-icon btn-ghost" aria-label="编辑家属关系" onClick={() => { setEditingMember(m); setFamilyOpen(true); }}>
-                      <Pencil size={14} />
-                    </button>
-                    <button type="button" className="btn btn-icon btn-ghost delete-btn" aria-label="删除家属关系" onClick={() => void removeMember(m)}>
-                      <Trash2 size={14} />
-                    </button>
+              {family.map((m) => {
+                const linked = m.linkedCustomerId != null ? customers.find((c) => c.id === m.linkedCustomerId) ?? null : null;
+                return (
+                  <div key={m.id} className="family-edit-row">
+                    <div className="family-edit-info">
+                      <div className="family-edit-top">
+                        <span className="badge relation-badge">{m.relationType}</span>
+                        <span className="name">{m.displayName}</span>
+                      </div>
+                      {linked ? (
+                        <div className="sub">
+                          <span>生日：{birthdayInfo(linked.birthday).label}</span>
+                          <BirthTags profile={birthProfile(linked.birthday)} />
+                          {linked.remark ? <span className="record-body">{linked.remark}</span> : null}
+                        </div>
+                      ) : m.remark ? (
+                        <div className="record-body">{m.remark}</div>
+                      ) : null}
+                    </div>
+                    <div className="row-btns">
+                      <button type="button" className="btn btn-icon btn-ghost" aria-label="编辑家属关系" onClick={() => { setEditingMember(m); setFamilyOpen(true); }}>
+                        <Pencil size={14} />
+                      </button>
+                      <button type="button" className="btn btn-icon btn-ghost delete-btn" aria-label="删除家属关系" onClick={() => void removeMember(m)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : null}
           {error ? <p className="form-error">{error}</p> : null}

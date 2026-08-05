@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Eye, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { Eye, Pencil, Plus, Search, Star, Trash2, Upload } from 'lucide-react';
+import { BirthTags } from '../components/BirthTags';
 import { CustomerFormModal } from '../components/CustomerFormModal';
 import { ImportModal } from '../components/ImportModal';
 import { LevelBadge } from '../components/LevelBadge';
@@ -8,7 +9,7 @@ import { StatusChip } from '../components/StatusChip';
 import { useToast } from '../components/Toast';
 import { INDUSTRIES, LEVELS, levelOrder } from '../constants';
 import { db, hasContactToday, type Customer, type Level } from '../db';
-import { birthdayInfo, birthdayMonth, currentMonth, todayKey } from '../utils/date';
+import { birthdayInfo, birthdayMonth, birthProfile, currentMonth, todayKey } from '../utils/date';
 
 type TimeFilter = 'all' | 'today' | 'week' | 'month';
 type LevelFilter = 'all' | Level;
@@ -27,6 +28,7 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
   const [level, setLevel] = useState<LevelFilter>('all');
   const [time, setTime] = useState<TimeFilter>('all');
   const [industry, setIndustry] = useState<string>('all');
+  const [starOnly, setStarOnly] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [formCustomer, setFormCustomer] = useState<Customer | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -43,11 +45,17 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
       if (time === 'week' && !(info.days >= 1 && info.days <= 7)) return false;
       if (time === 'month' && birthdayMonth(c.birthday) !== month) return false;
       if (industry !== 'all' && c.industry !== industry) return false;
+      if (starOnly && !c.starred) return false;
       const query = q.trim();
       if (query && !c.displayName.includes(query) && !c.customerNo.includes(query)) return false;
       return true;
     })
-    .sort((a, b) => levelOrder(a.level) - levelOrder(b.level) || birthdayInfo(a.birthday).days - birthdayInfo(b.birthday).days);
+    .sort(
+      (a, b) =>
+        Number(b.starred ?? false) - Number(a.starred ?? false)
+        || levelOrder(a.level) - levelOrder(b.level)
+        || birthdayInfo(a.birthday).days - birthdayInfo(b.birthday).days,
+    );
 
   const remove = async (c: Customer) => {
     const id = c.id;
@@ -72,6 +80,13 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
       <div className="search">
         <Search size={15} />
         <input type="search" placeholder="搜索客户编号 / 客户简称" value={q} onChange={(e) => setQ(e.target.value)} aria-label="搜索客户" />
+      </div>
+
+      <div className="chips" role="group" aria-label="按星标筛选">
+        <button type="button" className={`chip${!starOnly ? ' active' : ''}`} aria-pressed={!starOnly} onClick={() => setStarOnly(false)}>全部</button>
+        <button type="button" className={`chip${starOnly ? ' active' : ''}`} aria-pressed={starOnly} onClick={() => setStarOnly(true)}>
+          <Star size={12} fill="currentColor" /> 星标
+        </button>
       </div>
 
       <div className="chips" role="group" aria-label="按客户等级筛选">
@@ -108,10 +123,14 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
           <div key={c.id} className="row clickable" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
             <div className="row-main">
               <div className="row-top">
-                <span className="name">{c.displayName}</span>
+                <span className="name">
+                  {c.starred ? <Star size={13} className="star-mark" fill="currentColor" /> : null}
+                  {c.displayName}
+                </span>
                 <LevelBadge level={c.level} />
               </div>
               <div className="sub">{c.customerNo} · {c.gender} · {c.industry}</div>
+              <BirthTags profile={birthProfile(c.birthday)} />
             </div>
             <div className="row-side">
               <span className="date-text">{info.md}</span>
@@ -119,6 +138,14 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
               <StatusChip done={hasContactToday(records, c.id, dateKey)} />
             </div>
             <div className="row-btns">
+              <button
+                type="button"
+                className={`btn btn-icon btn-ghost${c.starred ? ' star-on' : ''}`}
+                aria-label={c.starred ? `取消星标 ${c.displayName}` : `设为星标 ${c.displayName}`}
+                onClick={(e) => { e.stopPropagation(); if (c.id != null) void db.customers.update(c.id, { starred: !c.starred }); }}
+              >
+                <Star size={15} fill={c.starred ? 'currentColor' : 'none'} />
+              </button>
               <button type="button" className="btn btn-icon btn-ghost" aria-label={`查看 ${c.displayName} 详情`} onClick={(e) => { e.stopPropagation(); if (c.id != null) onOpenDetail(c.id); }}>
                 <Eye size={15} />
               </button>

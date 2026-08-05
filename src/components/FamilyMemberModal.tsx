@@ -4,6 +4,7 @@ import { Save, Search, X } from 'lucide-react';
 import { RELATION_TYPES } from '../constants';
 import { db, type Customer, type FamilyMember, type RelationType } from '../db';
 import { addFamilyMember, updateFamilyMember } from '../family';
+import { birthdayInfo } from '../utils/date';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 
@@ -25,6 +26,7 @@ export function FamilyMemberModal({
   const [interacted, setInteracted] = useState(false);
   const [name, setName] = useState('');
   const [remark, setRemark] = useState('');
+  const [remarkTouched, setRemarkTouched] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const toast = useToast();
@@ -36,15 +38,15 @@ export function FamilyMemberModal({
     setInteracted(false);
     if (member) {
       setRelationType(member.relationType);
-      setRemark(member.remark);
       setName(member.displayName);
       setSelected(null);
     } else {
       setRelationType('夫妻');
-      setRemark('');
       setName('');
       setSelected(null);
     }
+    setRemark('');
+    setRemarkTouched(false);
   }, [open, member]);
 
   useEffect(() => {
@@ -68,6 +70,8 @@ export function FamilyMemberModal({
   );
   // 用户未主动操作时，惰性补上关联客户；用户操作后以用户选择为准
   const currentSelected = !interacted ? (selected ?? linkedCustomer) : selected;
+  // 备注：关联客户时展示/编辑“关联人自己的备注”；用户手动修改后以输入为准
+  const effectiveRemark = remarkTouched ? remark : (member == null ? '' : (currentSelected?.remark ?? member.remark ?? ''));
 
   const select = (c: Customer) => {
     setInteracted(true);
@@ -96,7 +100,7 @@ export function FamilyMemberModal({
         displayName: currentSelected?.displayName ?? nameTrim,
         relationType,
         linkedCustomerId: currentSelected?.id,
-        remark: remark.trim(),
+        remark: effectiveRemark.trim(),
       };
       if (isEdit && member?.id != null) {
         await updateFamilyMember(member.id, input);
@@ -137,7 +141,10 @@ export function FamilyMemberModal({
         </div>
         {currentSelected ? (
           <div className="selected-customer">
-            <span>{currentSelected.displayName}（{currentSelected.customerNo}）</span>
+            <span>
+              {currentSelected.displayName}（{currentSelected.customerNo}）
+              <span className="sub">生日：{birthdayInfo(currentSelected.birthday).label}</span>
+            </span>
             <button type="button" className="btn btn-icon btn-ghost" aria-label="取消选择" onClick={clear}>
               <X size={14} />
             </button>
@@ -149,16 +156,16 @@ export function FamilyMemberModal({
             {results.slice(0, 8).map((c) => (
               <button key={c.id} type="button" role="option" aria-selected={false} className="search-result" onClick={() => select(c)}>
                 <span className="name">{c.displayName}</span>
-                <span className="sub">{c.customerNo} · {c.industry}</span>
+                <span className="sub">{c.customerNo} · {birthdayInfo(c.birthday).label} · {c.industry}</span>
               </button>
             ))}
           </div>
         ) : null}
         <label htmlFor="fm-name">家属姓名 *</label>
         <input id="fm-name" className="form-control" placeholder="如：王女士 / 小刘" value={name} onChange={(e) => { setInteracted(true); setName(e.target.value); }} disabled={currentSelected != null} />
-        <p className="field-hint">选择关联客户后姓名自动取该客户简称；也可不关联直接填写</p>
-        <label htmlFor="fm-remark">备注</label>
-        <textarea id="fm-remark" className="form-control" rows={2} placeholder="如：共同经营 / 在私行有账户" value={remark} onChange={(e) => setRemark(e.target.value)} />
+        <p className="field-hint">选择关联客户后姓名自动取该客户简称；备注会同步到该关联人自己的信息中</p>
+        <label htmlFor="fm-remark">备注（关联客户时同步到其本人信息）</label>
+        <textarea id="fm-remark" className="form-control" rows={2} placeholder="如：喜欢雪茄 / 在私行有账户" value={effectiveRemark} onChange={(e) => { setRemark(e.target.value); setRemarkTouched(true); }} />
         {error ? <p className="form-error">{error}</p> : null}
       </form>
     </Modal>

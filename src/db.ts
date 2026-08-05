@@ -19,6 +19,8 @@ export interface Customer {
   company?: string;
   /** 职位（选填，用于公私联动与客户画像） */
   position?: string;
+  /** 星标客户：不受 ABC 等级限制的重点标记 */
+  starred?: boolean;
   createdAt: number;
 }
 
@@ -49,8 +51,8 @@ export const db = new Dexie('birthday-care-assistant') as Dexie & {
   familyMembers: EntityTable<FamilyMember, 'id'>;
 };
 
-db.version(2).stores({
-  customers: '++id, customerNo, birthday, level, industry',
+db.version(3).stores({
+  customers: '++id, customerNo, birthday, level, industry, starred',
   records: '++id, customerId, contactDate',
   familyMembers: '++id, customerId, linkedCustomerId',
 });

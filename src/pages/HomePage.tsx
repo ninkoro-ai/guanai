@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Star } from 'lucide-react';
+import { BirthTags } from '../components/BirthTags';
 import { BlessingModal } from '../components/BlessingModal';
 import { LevelBadge } from '../components/LevelBadge';
 import { RecordFormModal } from '../components/RecordFormModal';
 import { levelOrder } from '../constants';
 import { db, hasContactToday, type Customer } from '../db';
-import { birthdayInfo, todayKey } from '../utils/date';
+import { birthdayInfo, birthProfile, todayKey } from '../utils/date';
 
 export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
@@ -41,13 +42,17 @@ export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void 
         return (
           <div key={c.id} className={`card clickable${done ? ' card-done' : ''}`} onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
             <div className="card-head">
-              <span className="name">{c.displayName}</span>
+              <span className="name">
+                {c.starred ? <Star size={14} className="star-mark" fill="currentColor" /> : null}
+                {c.displayName}
+              </span>
               <LevelBadge level={c.level} />
             </div>
             <div className="sub">
               <span>客户编号：{c.customerNo}</span>
               <span>行业：{c.industry}</span>
             </div>
+            <BirthTags profile={birthProfile(c.birthday)} />
             {c.remark ? <div className="remark">{c.remark}</div> : null}
             <div className="actions">
               <button type="button" className="btn btn-sm" onClick={(e) => { e.stopPropagation(); setBlessFor(c); }}><Sparkles size={14} /> 生成祝福</button>
@@ -66,7 +71,10 @@ export function HomePage({ onOpenDetail }: { onOpenDetail: (id: number) => void 
         return (
           <button key={c.id} type="button" className="up-row" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
             <span className="up-date">{i.md}</span>
-            <span className="up-name">{c.displayName}</span>
+            <span className="up-name">
+              {c.starred ? <Star size={12} className="star-mark" fill="currentColor" /> : null}
+              {c.displayName}
+            </span>
             <span className="up-side">
               <LevelBadge level={c.level} />
               <span className="up-days">{i.label}</span>

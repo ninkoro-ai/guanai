@@ -144,6 +144,77 @@ export function currentMonth(d = new Date()): string {
   return String(d.getMonth() + 1).padStart(2, '0');
 }
 
+export interface BirthProfile {
+  /** 生日是否包含出生年份 */
+  hasYear: boolean;
+  /** 周岁年龄（无年份时为 null） */
+  age: number | null;
+  /** 属相 */
+  zodiac: string | null;
+  /** 是否为今年本命年 */
+  zodiacYear: boolean;
+  /** 星座 */
+  sign: string | null;
+}
+
+const ZODIACS = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+
+// 星座按“月*100+日”的起始边界排序，用于区间匹配
+const SIGN_BOUNDS: Array<{ sign: string; from: number }> = [
+  { sign: '摩羯', from: 101 },
+  { sign: '水瓶', from: 120 },
+  { sign: '双鱼', from: 219 },
+  { sign: '白羊', from: 321 },
+  { sign: '金牛', from: 420 },
+  { sign: '双子', from: 521 },
+  { sign: '巨蟹', from: 622 },
+  { sign: '狮子', from: 723 },
+  { sign: '处女', from: 823 },
+  { sign: '天秤', from: 923 },
+  { sign: '天蝎', from: 1024 },
+  { sign: '射手', from: 1123 },
+  { sign: '摩羯', from: 1222 },
+];
+
+function zodiacOf(year: number): string {
+  return ZODIACS[(((year - 4) % 12) + 12) % 12];
+}
+
+function signOf(month: number, day: number): string | null {
+  const md = month * 100 + day;
+  for (let i = SIGN_BOUNDS.length - 1; i >= 0; i -= 1) {
+    if (md >= SIGN_BOUNDS[i].from) return SIGN_BOUNDS[i].sign;
+  }
+  return null;
+}
+
+/** 根据生日计算年龄、属相、本命年与星座；仅含年份的生日才返回标签信息 */
+export function birthProfile(birthday: string, today = new Date()): BirthProfile {
+  const parts = birthday.split('-').map(Number);
+  if (parts.length < 2 || !Number.isInteger(parts[parts.length - 2]) || !Number.isInteger(parts[parts.length - 1])) {
+    return { hasYear: false, age: null, zodiac: null, zodiacYear: false, sign: null };
+  }
+  const hasYear = parts.length === 3 && /^\d{4}-/.test(birthday);
+  const month = parts[parts.length - 2];
+  const day = parts[parts.length - 1];
+  if (!hasYear) {
+    return { hasYear: false, age: null, zodiac: null, zodiacYear: false, sign: null };
+  }
+  const year = parts[0];
+  let age = today.getFullYear() - year;
+  const thisYearBirthday = new Date(today.getFullYear(), month - 1, day);
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  if (thisYearBirthday.getTime() > todayStart.getTime()) age -= 1;
+  const zodiac = zodiacOf(year);
+  return {
+    hasYear: true,
+    age: Math.max(0, age),
+    zodiac,
+    zodiacYear: zodiacOf(today.getFullYear()) === zodiac,
+    sign: signOf(month, day),
+  };
+}
+
 export function formatTodayHeading(d = new Date()): string {
   const week = ['日', '一', '二', '三', '四', '五', '六'][d.getDay()];
   return `${d.getMonth() + 1}月${d.getDate()}日 星期${week}`;

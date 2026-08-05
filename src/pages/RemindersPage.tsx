@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Pencil } from 'lucide-react';
+import { Pencil, Star } from 'lucide-react';
+import { BirthTags } from '../components/BirthTags';
 import { LevelBadge } from '../components/LevelBadge';
 import { RecordFormModal } from '../components/RecordFormModal';
 import { levelOrder } from '../constants';
 import { db, hasContactToday, type ContactRecord, type Customer } from '../db';
 import type { AppSettings } from '../settings';
-import { birthdayInfo, todayKey } from '../utils/date';
+import { birthdayInfo, birthProfile, todayKey } from '../utils/date';
 
 const TIMES = ['09:00', '10:00', '14:00'];
 const KINDS = ['第一次提醒', '第二次提醒', '第三次提醒'];
@@ -42,10 +43,14 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
       {settings.advance7 && advance.map((c) => (
         <button key={c.id} type="button" className="card card-link" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
           <div className="card-head">
-            <span className="name">{c.displayName}</span>
+            <span className="name">
+              {c.starred ? <Star size={14} className="star-mark" fill="currentColor" /> : null}
+              {c.displayName}
+            </span>
             <LevelBadge level={c.level} />
           </div>
           <div className="sub">{birthdayInfo(c.birthday).days} 天后生日 · 请提前安排客户关怀</div>
+          <BirthTags profile={birthProfile(c.birthday)} />
         </button>
       ))}
 
@@ -60,7 +65,10 @@ export function RemindersPage({ settings, onOpenDetail }: { settings: AppSetting
               <div key={`${c.id}-${t}`} className="timeline-item clickable" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
                 <div className="tl-head">
                   <span className="tl-time">{t}</span>
-                  <span className="name">{c.displayName}</span>
+                  <span className="name">
+                    {c.starred ? <Star size={13} className="star-mark" fill="currentColor" /> : null}
+                    {c.displayName}
+                  </span>
                   <span className="tl-kind">{KINDS[idx]}</span>
                 </div>
                 <div className="tl-foot">

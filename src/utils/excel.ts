@@ -19,7 +19,7 @@ export interface ParsedImport {
   duplicates: ImportDuplicate[];
 }
 
-const HEADERS = ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位'];
+const HEADERS = ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位', '星标'];
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
@@ -28,11 +28,11 @@ function pad2(n: number): string {
 export function downloadImportTemplate(): void {
   const ws = XLSX.utils.aoa_to_sheet([
     HEADERS,
-    ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年', '华兴制造集团', '总经理'],
-    ['C002', '王女士', '08-15', '女', '服务业', 'B类', '', '', ''],
-    ['C003', '陈先生', '1990年8月5日', '男', '建筑业', 'C类', '', '恒达建筑', '项目经理'],
+    ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年', '华兴制造集团', '总经理', '是'],
+    ['C002', '王女士', '08-15', '女', '服务业', 'B类', '', '', '', '否'],
+    ['C003', '陈先生', '1990年8月5日', '男', '建筑业', 'C类', '', '恒达建筑', '项目经理', ''],
   ]);
-  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 12 }];
+  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 8 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '客户');
   XLSX.writeFile(wb, '客户生日关怀助手_导入模板.xlsx');
@@ -52,6 +52,11 @@ function normalizeLevel(v: unknown): Level | null {
   if (s === 'C') return 'C';
   if (s === '') return 'C';
   return null;
+}
+
+function normalizeStarred(v: unknown): boolean {
+  const s = String(v ?? '').trim().toLowerCase();
+  return s === '是' || s === 'true' || s === '1' || s === 'y' || s === 'yes' || s === '★' || s === '⭐';
 }
 
 function normalizeIndustry(v: unknown): string {
@@ -164,6 +169,7 @@ export async function parseImportFile(file: File, existingNos: Set<string>): Pro
       remark: String(cells[6] ?? '').trim(),
       company: String(cells[7] ?? '').trim() || undefined,
       position: String(cells[8] ?? '').trim() || undefined,
+      starred: normalizeStarred(cells[9]),
       createdAt: 0,
     };
     if (existingNos.has(customerNo)) {
@@ -201,7 +207,7 @@ export function exportData(customers: Customer[], records: ContactRecord[], fami
 
   const cws = XLSX.utils.aoa_to_sheet([
     HEADERS,
-    ...customers.map((c) => [c.customerNo, c.displayName, c.birthday, c.gender, c.industry, `${c.level}类`, c.remark, c.company ?? '', c.position ?? '']),
+    ...customers.map((c) => [c.customerNo, c.displayName, c.birthday, c.gender, c.industry, `${c.level}类`, c.remark, c.company ?? '', c.position ?? '', c.starred ? '是' : '否']),
   ]);
   XLSX.utils.book_append_sheet(wb, cws, '客户');
 

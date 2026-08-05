@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { birthdayInfo, birthdayMonth, currentMonth, isRealDate, parseFlexibleBirthday, todayKey } from './date';
+import { birthdayInfo, birthdayMonth, birthProfile, currentMonth, isRealDate, parseFlexibleBirthday, todayKey } from './date';
 
 describe('isRealDate', () => {
   it('validates real calendar dates including leap days', () => {
@@ -41,6 +41,40 @@ describe('parseFlexibleBirthday', () => {
     expect(parseFlexibleBirthday('bad')).toBeNull();
     expect(parseFlexibleBirthday('2026-02-30')).toBeNull();
     expect(parseFlexibleBirthday('13月40日')).toBeNull();
+  });
+});
+
+describe('birthProfile', () => {
+  const today = new Date(2026, 7, 5);
+
+  it('returns nothing for yearless birthdays', () => {
+    const p = birthProfile('08-05', today);
+    expect(p.hasYear).toBe(false);
+    expect(p.age).toBeNull();
+    expect(p.zodiac).toBeNull();
+    expect(p.sign).toBeNull();
+    expect(p.zodiacYear).toBe(false);
+  });
+
+  it('computes age, zodiac and sign for full birthdays', () => {
+    const p = birthProfile('1988-08-05', today);
+    expect(p.hasYear).toBe(true);
+    expect(p.age).toBe(38); // 生日当天满 38 周岁
+    expect(p.zodiac).toBe('龙');
+    expect(p.sign).toBe('狮子');
+    expect(p.zodiacYear).toBe(false); // 2026 属马
+  });
+
+  it('marks 本命年 for same zodiac year', () => {
+    const p = birthProfile('1978-05-20', new Date(2026, 0, 1));
+    expect(p.zodiac).toBe('马');
+    expect(p.zodiacYear).toBe(true); // 2026 属马
+  });
+
+  it('decrements age before birthday in current year', () => {
+    const p = birthProfile('1988-12-05', today);
+    expect(p.age).toBe(37); // 生日未到
+    expect(p.sign).toBe('射手');
   });
 });
 
