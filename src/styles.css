@@ -20,6 +20,7 @@
   --warn-soft: light-dark(#fdf0e0, #3a2a16);
   --danger: light-dark(#c0392b, #e07b6f);
   --danger-soft: light-dark(#fbeae7, #33201d);
+  --on-danger: light-dark(#ffffff, #2a0f0c);
   --radius: 14px;
 }
 
@@ -99,6 +100,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 }
 .btn:hover { border-color: color-mix(in srgb, var(--text) 25%, var(--border)); }
 .btn-primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.btn-danger { background: var(--danger); border-color: var(--danger); color: var(--on-danger); }
+.btn-danger-soft { color: var(--danger); background: var(--danger-soft); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
 .btn-ghost { background: transparent; border-color: transparent; color: var(--primary); }
 .btn-sm { padding: 6px 10px; font-size: 12px; }
 .btn-icon { padding: 6px; }
@@ -158,10 +161,19 @@ button.card-link:hover { border-color: var(--primary); }
 .record-body { font-size: 13px; }
 
 .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+.setting-danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
 .setting-label { font-size: 13px; font-weight: 500; }
 .setting-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
 .note { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.8; }
+.creator-mark { text-align: center; font-size: 12px; color: var(--muted); margin: 24px 0 0; letter-spacing: 0.02em; }
+
+.confirm-dots { display: flex; gap: 6px; margin-bottom: 14px; }
+.confirm-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.confirm-dot.active { background: var(--danger); }
+.confirm-body { display: flex; gap: 12px; align-items: flex-start; color: var(--danger); }
+.confirm-title { font-size: 14px; font-weight: 500; color: var(--text); }
+.confirm-desc { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
 
 .switch input {
   appearance: none;

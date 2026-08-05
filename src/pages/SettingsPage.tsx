@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Download, FileDown, RotateCcw, Upload } from 'lucide-react';
+import { Download, FileDown, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { ClearDataModal } from '../components/ClearDataModal';
 import { ImportModal } from '../components/ImportModal';
 import { useToast } from '../components/Toast';
 import { db } from '../db';
@@ -10,6 +11,7 @@ import { downloadImportTemplate, exportData } from '../utils/excel';
 
 export function SettingsPage({ settings, onChange }: { settings: AppSettings; onChange: (patch: Partial<AppSettings>) => void }) {
   const [importOpen, setImportOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [, setSessionTick] = useState(0);
   const toast = useToast();
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
@@ -75,6 +77,13 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
           <button type="button" className="btn btn-sm" onClick={() => void undoLast()}><RotateCcw size={14} /> 撤销</button>
         </div>
       )}
+      <div className="setting setting-danger">
+        <div>
+          <div className="setting-label">清空所有数据</div>
+          <div className="setting-desc">删除全部客户与维护记录，需三次确认</div>
+        </div>
+        <button type="button" className="btn btn-sm btn-danger-soft" onClick={() => setClearOpen(true)}><Trash2 size={14} /> 清空数据</button>
+      </div>
 
       <h2 className="section-title">提醒设置</h2>
       <div className="setting">
@@ -103,7 +112,10 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
         所有数据仅存储在本机浏览器中，不上传服务器。
       </div>
 
+      <p className="creator-mark">Power by Ninkoro.com</p>
+
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
+      {clearOpen && <ClearDataModal open onClose={() => setClearOpen(false)} />}
     </div>
   );
 }

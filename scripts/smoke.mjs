@@ -208,6 +208,25 @@ try {
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('3 位客户'));
   const totalCount = await page.locator('.count').innerText();
   if (!totalCount.includes('3 位客户')) throw new Error(`撤销导入后客户数异常: ${totalCount}`);
+  await page.waitForSelector('.toast-show', { state: 'hidden' }).catch(() => {});
+
+  // 设置页：创作者标识 + 清空所有数据（三次确认）
+  await page.getByRole('button', { name: '设置' }).click();
+  const creator = await page.locator('.creator-mark').innerText();
+  if (!creator.includes('Power by Ninkoro.com')) throw new Error('创作者标识缺失');
+  await page.getByRole('button', { name: '清空数据' }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.getByRole('button', { name: '继续' }).click();
+  await page.waitForFunction(() => (document.querySelector('.confirm-title')?.textContent ?? '').includes('再次确认'));
+  await page.getByRole('button', { name: '再次确认' }).click();
+  await page.waitForFunction(() => (document.querySelector('.confirm-title')?.textContent ?? '').includes('最后确认'));
+  await page.screenshot({ path: path.join(SHOT_DIR, 'clear-data.png') });
+  await page.getByRole('button', { name: '确认清空' }).click();
+  await page.waitForSelector('.toast-show');
+  await page.waitForFunction(() => !document.querySelector('dialog.modal[open]'));
+  await page.getByRole('button', { name: '客户' }).click();
+  await page.waitForFunction(() => (document.querySelector('.empty')?.textContent ?? '').includes('没有符合条件的客户'));
+  console.log('CLEAR_OK');
 
   // PWA：manifest 与服务工作者
   const manifestCount = await page.locator('link[rel="manifest"]').count();
