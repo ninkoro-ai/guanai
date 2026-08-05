@@ -41,6 +41,8 @@ export interface FamilyMember {
   relationType: RelationType;
   /** 关联的系统内客户（可选）；为空表示仅登记姓名 */
   linkedCustomerId?: number;
+  /** 生日（YYYY-MM-DD 或 MM-DD，可选）：未关联存量客户时填写，可加入与标准客户一致的生日提醒 */
+  birthday?: string;
   remark: string;
   createdAt: number;
 }

@@ -13,6 +13,8 @@ export interface FamilyMemberInput {
   displayName: string;
   relationType: RelationType;
   linkedCustomerId?: number;
+  /** 未关联存量客户时登记的生日（可选，加入生日提醒） */
+  birthday?: string;
   remark: string;
 }
 
@@ -52,6 +54,7 @@ async function insertMemberWithReverse(input: FamilyMemberInput, remarkMode: 'ap
       displayName: linked.displayName,
       relationType: input.relationType,
       linkedCustomerId: linked.id,
+      birthday: '',
       remark: '',
       createdAt: now,
     });
@@ -60,6 +63,7 @@ async function insertMemberWithReverse(input: FamilyMemberInput, remarkMode: 'ap
       displayName: owner.displayName,
       relationType: REVERSE_RELATION[input.relationType] ?? '其他',
       linkedCustomerId: owner.id,
+      birthday: '',
       remark: '',
       createdAt: now,
     });
@@ -68,6 +72,7 @@ async function insertMemberWithReverse(input: FamilyMemberInput, remarkMode: 'ap
       customerId: input.customerId,
       displayName: input.displayName,
       relationType: input.relationType,
+      birthday: input.birthday?.trim() || undefined,
       remark: input.remark,
       createdAt: Date.now(),
     });

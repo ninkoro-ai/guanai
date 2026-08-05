@@ -4,7 +4,7 @@ import { Save, Search, X } from 'lucide-react';
 import { RELATION_TYPES } from '../constants';
 import { db, type Customer, type FamilyMember, type RelationType } from '../db';
 import { addFamilyMember, updateFamilyMember } from '../family';
-import { birthdayInfo } from '../utils/date';
+import { birthdayInfo, parseFlexibleBirthday } from '../utils/date';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 
@@ -25,6 +25,7 @@ export function FamilyMemberModal({
   const [selected, setSelected] = useState<Customer | null>(null);
   const [interacted, setInteracted] = useState(false);
   const [name, setName] = useState('');
+  const [birthday, setBirthday] = useState('');
   const [remark, setRemark] = useState('');
   const [remarkTouched, setRemarkTouched] = useState(false);
   const [error, setError] = useState('');
@@ -47,6 +48,7 @@ export function FamilyMemberModal({
     }
     setRemark('');
     setRemarkTouched(false);
+    setBirthday(member?.birthday ?? '');
   }, [open, member]);
 
   useEffect(() => {
@@ -92,6 +94,14 @@ export function FamilyMemberModal({
       setError('请填写家属姓名，或搜索并选择关联客户');
       return;
     }
+    let birthdayValue: string | undefined;
+    if (currentSelected == null && birthday.trim()) {
+      birthdayValue = parseFlexibleBirthday(birthday) ?? undefined;
+      if (!birthdayValue) {
+        setError('生日格式无法识别，请填写例如：1990-08-05、08-05、1990年8月5日');
+        return;
+      }
+    }
     if (saving) return;
     setSaving(true);
     try {
@@ -100,6 +110,7 @@ export function FamilyMemberModal({
         displayName: currentSelected?.displayName ?? nameTrim,
         relationType,
         linkedCustomerId: currentSelected?.id,
+        birthday: birthdayValue,
         remark: effectiveRemark.trim(),
       };
       if (isEdit && member?.id != null) {
@@ -164,6 +175,21 @@ export function FamilyMemberModal({
         <label htmlFor="fm-name">家属姓名 *</label>
         <input id="fm-name" className="form-control" placeholder="如：王女士 / 小刘" value={name} onChange={(e) => { setInteracted(true); setName(e.target.value); }} disabled={currentSelected != null} />
         <p className="field-hint">选择关联客户后姓名自动取该客户简称；备注会同步到该关联人自己的信息中</p>
+        {currentSelected ? (
+          <p className="field-hint">生日：{birthdayInfo(currentSelected.birthday).md}（{birthdayInfo(currentSelected.birthday).label}，随关联客户资料）</p>
+        ) : (
+          <>
+            <label htmlFor="fm-birthday">生日（选填，填写后加入生日提醒）</label>
+            <input
+              id="fm-birthday"
+              className="form-control"
+              placeholder="1990-08-05 / 08-05 / 1990年8月5日"
+              value={birthday}
+              onChange={(e) => setBirthday(e.target.value)}
+            />
+            <p className="field-hint">家属不一定是存量客户，无需客户编号；填写生日后自动进入与标准客户一致的提醒序列</p>
+          </>
+        )}
         <label htmlFor="fm-remark">备注（关联客户时同步到其本人信息）</label>
         <textarea id="fm-remark" className="form-control" rows={2} placeholder="如：喜欢雪茄 / 在私行有账户" value={effectiveRemark} onChange={(e) => { setRemark(e.target.value); setRemarkTouched(true); }} />
         {error ? <p className="form-error">{error}</p> : null}

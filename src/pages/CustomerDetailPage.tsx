@@ -120,7 +120,9 @@ export function CustomerDetailPage({
       {family.length === 0 && <div className="empty">暂未登记家属关系</div>}
       {family.map((m) => {
         const linked = m.linkedCustomerId != null ? customerById.get(m.linkedCustomerId) ?? null : null;
-        const linkedInfo = linked ? birthdayInfo(linked.birthday) : null;
+        const memberBirthday = linked ? linked.birthday : m.birthday;
+        const memberInfo = memberBirthday ? birthdayInfo(memberBirthday) : null;
+        const memberProfile = memberBirthday ? birthProfile(memberBirthday) : null;
         return (
           <div key={m.id} className="record">
             <div className="record-head">
@@ -140,10 +142,12 @@ export function CustomerDetailPage({
                 </button>
               </div>
             </div>
-            <div className="sub">
-              {linked && linkedInfo ? <span>生日：{linkedInfo.label}</span> : null}
-              {linked && <BirthTags profile={birthProfile(linked.birthday)} />}
-            </div>
+            {memberInfo ? (
+              <div className="member-birth">
+                <span className="sub">生日：{memberInfo.md} · {memberInfo.label}</span>
+                {memberProfile ? <BirthTags profile={memberProfile} /> : null}
+              </div>
+            ) : null}
             <div className="record-body">{linked ? (linked.remark || '') : m.remark}</div>
           </div>
         );

@@ -191,9 +191,13 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
                           <BirthTags profile={birthProfile(linked.birthday)} />
                           {linked.remark ? <span className="record-body">{linked.remark}</span> : null}
                         </div>
-                      ) : m.remark ? (
-                        <div className="record-body">{m.remark}</div>
-                      ) : null}
+                      ) : (
+                        <div className="sub">
+                          {m.birthday ? <span>生日：{birthdayInfo(m.birthday).label}</span> : null}
+                          {m.birthday ? <BirthTags profile={birthProfile(m.birthday)} /> : null}
+                          {m.remark ? <span className="record-body">{m.remark}</span> : null}
+                        </div>
+                      )}
                     </div>
                     <div className="row-btns">
                       <button type="button" className="btn btn-icon btn-ghost" aria-label="编辑家属关系" onClick={() => { setEditingMember(m); setFamilyOpen(true); }}>

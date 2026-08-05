@@ -99,7 +99,7 @@ try {
   if (!ogTitle || !ogTitle.includes('客户关怀系统')) throw new Error('微信分享标题缺少产品定位');
 
   // 新增三个客户（一个今日生日、两个未来 7 天）
-  await page.getByRole('button', { name: '客户' }).click();
+  await page.getByRole('button', { name: '客户', exact: true }).click();
   await page.waitForSelector('.toolbar');
 
   async function addCustomer(no, name, birthday, gender, level, industry, remark, company, position) {
@@ -335,6 +335,33 @@ try {
   await page.locator('dialog.modal[open] .family-edit-row', { hasText: '李女士' }).getByRole('button', { name: '删除家属关系', exact: true }).click();
   await page.waitForFunction(() => !(document.querySelector('dialog.modal[open]')?.textContent ?? '').includes('李女士'));
   await page.locator('dialog.modal[open]').getByRole('button', { name: '取消', exact: true }).click();
+  await page.waitForSelector('.toolbar');
+
+  // 自由登记家属：无需客户编号，填写生日后加入与标准客户一致的提醒序列
+  await page.getByRole('button', { name: '查看 刘先生 详情', exact: true }).click();
+  await page.waitForSelector('.detail-view');
+  await page.getByRole('button', { name: '新增家属', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.locator('#fm-relation').selectOption('子女');
+  await page.locator('#fm-name').fill('小刘');
+  await page.locator('#fm-birthday').fill('08-04');
+  await page.locator('#fm-remark').fill('在海外读书');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.detail-view .member-birth')).some((el) => (el.textContent ?? '').includes('今天')));
+  await page.getByRole('button', { name: '返回' }).click();
+  await page.waitForSelector('.toolbar');
+  // 首页今日生日统计与卡片包含家属
+  await page.getByRole('button', { name: '首页' }).click();
+  await page.waitForFunction(() => (document.querySelectorAll('.stat b')[0]?.textContent ?? '') === '2');
+  const homeFamilyText = await page.locator('.app-main').innerText();
+  if (!homeFamilyText.includes('小刘') || !homeFamilyText.includes('家属')) throw new Error('首页今日生日未包含家属');
+  // 提醒页“今天家属生日”区块
+  await page.getByRole('button', { name: '提醒' }).click();
+  await page.waitForFunction(() => (document.querySelector('.app-main')?.textContent ?? '').includes('今天家属生日'));
+  const remindersFamilyText = await page.locator('.app-main').innerText();
+  if (!remindersFamilyText.includes('小刘')) throw new Error('提醒页家属生日缺失');
+  await page.getByRole('button', { name: '客户', exact: true }).click();
   await page.waitForSelector('.toolbar');
 
   // 批量导入（含校验、重复、错误报告）

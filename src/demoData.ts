@@ -59,10 +59,10 @@ export const DEMO_FAMILY: Array<Omit<FamilyMember, 'id'>> = [
   { customerId: 4, displayName: '李女士', relationType: '夫妻', linkedCustomerId: 10, remark: '', createdAt: T },
   { customerId: 10, displayName: '何先生', relationType: '夫妻', linkedCustomerId: 4, remark: '', createdAt: T },
   // 仅登记姓名（自由条目，演示关系备注）
-  { customerId: 1, displayName: '小刘', relationType: '子女', remark: '在海外读书', createdAt: T },
-  { customerId: 2, displayName: '陈小雅', relationType: '子女', remark: '即将接班，关注公司治理', createdAt: T },
-  { customerId: 13, displayName: '孙母', relationType: '父母', remark: '关注养老理财', createdAt: T },
-  { customerId: 25, displayName: '朱太太', relationType: '夫妻', remark: '喜欢茶文化，可作礼品参考', createdAt: T },
+  { customerId: 1, displayName: '小刘', relationType: '子女', birthday: '2003-06-12', remark: '在海外读书', createdAt: T },
+  { customerId: 2, displayName: '陈小雅', relationType: '子女', birthday: '1995-03-08', remark: '即将接班，关注公司治理', createdAt: T },
+  { customerId: 13, displayName: '孙母', relationType: '父母', birthday: '1948-11-03', remark: '关注养老理财', createdAt: T },
+  { customerId: 25, displayName: '朱太太', relationType: '夫妻', birthday: '1970-08-05', remark: '喜欢茶文化，可作礼品参考', createdAt: T },
 ];
 
 /** 维护记录：演示“历史维护记录”与“今日已维护/已联系”状态 */
