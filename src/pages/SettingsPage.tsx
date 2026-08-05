@@ -112,7 +112,7 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
         所有数据仅存储在本机浏览器中，不上传服务器。
       </div>
 
-      <p className="creator-mark">Power by Ninkoro.com</p>
+      <p className="creator-mark">Powered by Ninkoro.com</p>
 
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />
       {clearOpen && <ClearDataModal open onClose={() => setClearOpen(false)} />}

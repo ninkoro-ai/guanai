@@ -213,7 +213,7 @@ try {
   // 设置页：创作者标识 + 清空所有数据（三次确认）
   await page.getByRole('button', { name: '设置' }).click();
   const creator = await page.locator('.creator-mark').innerText();
-  if (!creator.includes('Power by Ninkoro.com')) throw new Error('创作者标识缺失');
+  if (!creator.includes('Powered by Ninkoro.com')) throw new Error('创作者标识缺失');
   await page.getByRole('button', { name: '清空数据' }).click();
   await page.waitForSelector('dialog.modal[open]');
   await page.getByRole('button', { name: '继续' }).click();
