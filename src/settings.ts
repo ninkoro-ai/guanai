@@ -5,11 +5,13 @@ export interface AppSettings {
   userName: string;
   /** 所属团队 */
   team: string;
+  /** 演示模式：开启后加载内置演示数据（与真实数据隔离） */
+  demoMode: boolean;
 }
 
 const KEY = 'birthday-care.settings.v1';
 
-const DEFAULTS: AppSettings = { advance7: true, todayA: true, userName: '', team: '' };
+const DEFAULTS: AppSettings = { advance7: true, todayA: true, userName: '', team: '', demoMode: false };
 
 export function readSettings(): AppSettings {
   try {
@@ -21,6 +23,7 @@ export function readSettings(): AppSettings {
       todayA: typeof parsed.todayA === 'boolean' ? parsed.todayA : DEFAULTS.todayA,
       userName: typeof parsed.userName === 'string' ? parsed.userName : DEFAULTS.userName,
       team: typeof parsed.team === 'string' ? parsed.team : DEFAULTS.team,
+      demoMode: typeof parsed.demoMode === 'boolean' ? parsed.demoMode : DEFAULTS.demoMode,
     };
   } catch {
     return { ...DEFAULTS };

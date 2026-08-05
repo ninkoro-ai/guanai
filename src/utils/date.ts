@@ -157,7 +157,8 @@ export interface BirthProfile {
   sign: string | null;
 }
 
-const ZODIACS = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+export const ZODIACS = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+export const SIGNS = ['水瓶', '双鱼', '白羊', '金牛', '双子', '巨蟹', '狮子', '处女', '天秤', '天蝎', '射手', '摩羯'];
 
 // 星座按“月*100+日”的起始边界排序，用于区间匹配
 const SIGN_BOUNDS: Array<{ sign: string; from: number }> = [
@@ -186,6 +187,24 @@ function signOf(month: number, day: number): string | null {
     if (md >= SIGN_BOUNDS[i].from) return SIGN_BOUNDS[i].sign;
   }
   return null;
+}
+
+/** 生日的星座（仅按月日判断，无年份也可返回） */
+export function birthdaySign(birthday: string): string | null {
+  const parts = birthday.split('-').map(Number);
+  if (parts.length < 2 || !Number.isInteger(parts[parts.length - 2]) || !Number.isInteger(parts[parts.length - 1])) {
+    return null;
+  }
+  return signOf(parts[parts.length - 2], parts[parts.length - 1]);
+}
+
+/** 生日的属相（需包含出生年份；仅月日返回 null） */
+export function birthdayZodiac(birthday: string): string | null {
+  const parts = birthday.split('-');
+  if (parts.length !== 3 || !/^\d{4}-/.test(birthday)) return null;
+  const year = Number(parts[0]);
+  if (!Number.isInteger(year)) return null;
+  return zodiacOf(year);
 }
 
 /** 根据生日计算年龄、属相、本命年与星座；仅含年份的生日才返回标签信息 */

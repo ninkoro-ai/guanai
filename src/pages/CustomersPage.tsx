@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Eye, Pencil, Plus, Search, Star, Trash2, Upload } from 'lucide-react';
 import { BirthTags } from '../components/BirthTags';
@@ -7,9 +7,9 @@ import { ImportModal } from '../components/ImportModal';
 import { LevelBadge } from '../components/LevelBadge';
 import { StatusChip } from '../components/StatusChip';
 import { useToast } from '../components/Toast';
-import { INDUSTRIES, LEVELS, levelOrder } from '../constants';
+import { INDUSTRIES, LEVELS } from '../constants';
 import { db, hasContactToday, type Customer, type Level } from '../db';
-import { birthdayInfo, birthdayMonth, birthProfile, currentMonth, todayKey } from '../utils/date';
+import { SIGNS, ZODIACS, birthdayInfo, birthdayMonth, birthdaySign, birthdayZodiac, birthProfile, currentMonth, todayKey } from '../utils/date';
 
 type TimeFilter = 'all' | 'today' | 'week' | 'month';
 type LevelFilter = 'all' | Level;
@@ -21,6 +21,9 @@ const TIME_FILTERS: Array<{ key: TimeFilter; label: string }> = [
   { key: 'month', label: '本月生日' },
 ];
 
+const MONTHS = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'));
+const PAGE_SIZE = 20;
+
 export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => void }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const records = useLiveQuery(() => db.records.toArray(), []) ?? [];
@@ -29,13 +32,22 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
   const [time, setTime] = useState<TimeFilter>('all');
   const [industry, setIndustry] = useState<string>('all');
   const [starOnly, setStarOnly] = useState(false);
+  const [month, setMonth] = useState<string>('all');
+  const [sign, setSign] = useState<string>('all');
+  const [zodiac, setZodiac] = useState<string>('all');
+  const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [formCustomer, setFormCustomer] = useState<Customer | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const toast = useToast();
 
   const dateKey = todayKey();
-  const month = currentMonth();
+  const monthNow = currentMonth();
+
+  // 筛选条件变化时回到第一页
+  useEffect(() => {
+    setPage(1);
+  }, [q, level, time, industry, starOnly, month, sign, zodiac]);
 
   const list = customers
     .filter((c) => {
@@ -43,19 +55,23 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
       const info = birthdayInfo(c.birthday);
       if (time === 'today' && !info.isToday) return false;
       if (time === 'week' && !(info.days >= 1 && info.days <= 7)) return false;
-      if (time === 'month' && birthdayMonth(c.birthday) !== month) return false;
+      if (time === 'month' && birthdayMonth(c.birthday) !== monthNow) return false;
       if (industry !== 'all' && c.industry !== industry) return false;
       if (starOnly && !c.starred) return false;
+      if (month !== 'all' && birthdayMonth(c.birthday) !== month) return false;
+      if (sign !== 'all' && birthdaySign(c.birthday) !== sign) return false;
+      if (zodiac !== 'all' && birthdayZodiac(c.birthday) !== zodiac) return false;
       const query = q.trim();
       if (query && !c.displayName.includes(query) && !c.customerNo.includes(query)) return false;
       return true;
     })
-    .sort(
-      (a, b) =>
-        Number(b.starred ?? false) - Number(a.starred ?? false)
-        || levelOrder(a.level) - levelOrder(b.level)
-        || birthdayInfo(a.birthday).days - birthdayInfo(b.birthday).days,
-    );
+    // 默认按“距离生日倒计时”正序排列（最近过生日的排最前）
+    .sort((a, b) => birthdayInfo(a.birthday).days - birthdayInfo(b.birthday).days);
+
+  const total = list.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageRows = list.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const remove = async (c: Customer) => {
     const id = c.id;
@@ -82,22 +98,6 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
         <input type="search" placeholder="搜索客户编号 / 客户简称" value={q} onChange={(e) => setQ(e.target.value)} aria-label="搜索客户" />
       </div>
 
-      <div className="chips" role="group" aria-label="按星标筛选">
-        <button type="button" className={`chip${!starOnly ? ' active' : ''}`} aria-pressed={!starOnly} onClick={() => setStarOnly(false)}>全部</button>
-        <button type="button" className={`chip${starOnly ? ' active' : ''}`} aria-pressed={starOnly} onClick={() => setStarOnly(true)}>
-          <Star size={12} fill="currentColor" /> 星标
-        </button>
-      </div>
-
-      <div className="chips" role="group" aria-label="按客户等级筛选">
-        <button type="button" className={`chip${level === 'all' ? ' active' : ''}`} aria-pressed={level === 'all'} onClick={() => setLevel('all')}>全部</button>
-        {LEVELS.map((lv) => (
-          <button key={lv} type="button" className={`chip${level === lv ? ' active' : ''}`} aria-pressed={level === lv} onClick={() => setLevel(lv)}>
-            {lv}类
-          </button>
-        ))}
-      </div>
-
       <div className="chips" role="group" aria-label="按时间筛选">
         {TIME_FILTERS.map(({ key, label }) => (
           <button key={key} type="button" className={`chip${time === key ? ' active' : ''}`} aria-pressed={time === key} onClick={() => setTime(key)}>
@@ -106,18 +106,54 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
         ))}
       </div>
 
-      <div className="select-row">
-        <label htmlFor="industry-filter">行业</label>
-        <select id="industry-filter" className="form-control" value={industry} onChange={(e) => setIndustry(e.target.value)}>
-          <option value="all">全部</option>
-          {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
-        </select>
+      <div className="filter-grid" aria-label="客户筛选条件">
+        <div>
+          <label htmlFor="filter-level">客户等级</label>
+          <select id="filter-level" className="form-control" value={level} onChange={(e) => setLevel(e.target.value as LevelFilter)}>
+            <option value="all">全部等级</option>
+            {LEVELS.map((lv) => <option key={lv} value={lv}>{lv}类</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="filter-industry">行业</label>
+          <select id="filter-industry" className="form-control" value={industry} onChange={(e) => setIndustry(e.target.value)}>
+            <option value="all">全部行业</option>
+            {INDUSTRIES.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="filter-star">星标</label>
+          <select id="filter-star" className="form-control" value={starOnly ? 'starred' : 'all'} onChange={(e) => setStarOnly(e.target.value === 'starred')}>
+            <option value="all">全部客户</option>
+            <option value="starred">星标客户</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="filter-month">生日月份</label>
+          <select id="filter-month" className="form-control" value={month} onChange={(e) => setMonth(e.target.value)}>
+            <option value="all">全部月份</option>
+            {MONTHS.map((m) => <option key={m} value={m}>{Number(m)}月</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="filter-sign">星座</label>
+          <select id="filter-sign" className="form-control" value={sign} onChange={(e) => setSign(e.target.value)}>
+            <option value="all">全部星座</option>
+            {SIGNS.map((s) => <option key={s} value={s}>{s}座</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="filter-zodiac">属相</label>
+          <select id="filter-zodiac" className="form-control" value={zodiac} onChange={(e) => setZodiac(e.target.value)}>
+            <option value="all">全部属相</option>
+            {ZODIACS.map((z) => <option key={z} value={z}>属{z}</option>)}
+          </select>
+        </div>
       </div>
 
-      <p className="count">{list.length ? `共 ${list.length} 位客户` : ''}</p>
-      {list.length === 0 && <div className="empty">没有符合条件的客户</div>}
+      {total === 0 && <div className="empty">没有符合条件的客户</div>}
 
-      {list.map((c) => {
+      {pageRows.map((c) => {
         const info = birthdayInfo(c.birthday);
         return (
           <div key={c.id} className="row clickable" onClick={() => { if (c.id != null) onOpenDetail(c.id); }}>
@@ -159,6 +195,15 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
           </div>
         );
       })}
+
+      {total > 0 ? (
+        <div className="pager">
+          <button type="button" className="btn btn-sm" disabled={safePage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>上一页</button>
+          <span className="pager-info">第 {safePage} / {totalPages} 页</span>
+          <button type="button" className="btn btn-sm" disabled={safePage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>下一页</button>
+          <span className="pager-total count">共 {total} 位客户</span>
+        </div>
+      ) : null}
 
       <CustomerFormModal open={formOpen} customer={formCustomer} onClose={() => setFormOpen(false)} />
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />

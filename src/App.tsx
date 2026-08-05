@@ -13,19 +13,38 @@ import { readSettings, writeSettings, type AppSettings } from './settings';
 import { formatTodayHeading } from './utils/date';
 import { ensureFamilySync } from './family';
 import { markExportReminderShown, shouldShowExportReminder } from './exportReminder';
+import { setActiveDemoMode } from './db';
+import { seedDemoData } from './demoData';
 
 export type Tab = 'home' | 'customers' | 'reminders' | 'settings';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [detailId, setDetailId] = useState<number | null>(null);
-  const [settings, setSettings] = useState<AppSettings>(readSettings);
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const s = readSettings();
+    // 首次渲染前同步应用演示模式，避免先读真实数据再切换的闪烁
+    setActiveDemoMode(s.demoMode);
+    return s;
+  });
   const [reminderOpen, setReminderOpen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
     void ensureFamilySync();
   }, []);
+
+  // 演示模式：开启时播种内置演示数据并切换数据库；关闭时切回真实库（互不影响）
+  useEffect(() => {
+    if (settings.demoMode) {
+      void (async () => {
+        await seedDemoData();
+        setActiveDemoMode(true);
+      })();
+    } else {
+      setActiveDemoMode(false);
+    }
+  }, [settings.demoMode]);
 
   // 完成每日关怀任务后，弹出“及时导出数据”的友情提醒（每日最多一次）
   useEffect(() => {

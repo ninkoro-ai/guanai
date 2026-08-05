@@ -153,9 +153,9 @@ try {
   // 星标：切换李女士为星标，验证星标筛选
   await page.locator('.row', { hasText: '李女士' }).getByRole('button', { name: '设为星标 李女士' }).click();
   await page.waitForFunction(() => document.querySelectorAll('.star-mark').length >= 1);
-  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: /星标/ }).click();
+  await page.locator('#filter-star').selectOption('starred');
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('1 位客户'));
-  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: '全部', exact: true }).click();
+  await page.locator('#filter-star').selectOption('all');
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('3 位客户'));
 
   // 编辑客户
@@ -383,6 +383,43 @@ try {
   await page.getByRole('button', { name: '客户' }).click();
   await page.waitForFunction(() => (document.querySelector('.empty')?.textContent ?? '').includes('没有符合条件的客户'));
   console.log('CLEAR_OK');
+
+  // 演示模式：内置演示数据（隔离）+ 分页 + 多维筛选 + 家属关系样本
+  await page.getByRole('button', { name: '设置' }).click();
+  await page.getByLabel('演示模式').check();
+  await page.getByRole('button', { name: '客户' }).click();
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('34 位客户'));
+  // 分页：每页 20 条，默认第 1/2 页，底部统计总数
+  const demoPage1Rows = await page.locator('.row').count();
+  if (demoPage1Rows !== 20) throw new Error(`演示数据第一页行数异常: ${demoPage1Rows}`);
+  const demoPagerInfo = await page.locator('.pager-info').innerText();
+  if (!demoPagerInfo.includes('1 / 2')) throw new Error(`演示分页信息异常: ${demoPagerInfo}`);
+  await page.getByRole('button', { name: '下一页' }).click();
+  await page.waitForFunction(() => (document.querySelector('.pager-info')?.textContent ?? '').includes('2 / 2'));
+  await page.getByRole('button', { name: '上一页' }).click();
+  await page.waitForFunction(() => (document.querySelector('.pager-info')?.textContent ?? '').includes('1 / 2'));
+  // 维度筛选：生日月份 + 属相
+  await page.locator('#filter-month').selectOption('09');
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('5 位客户'));
+  await page.locator('#filter-month').selectOption('all');
+  await page.locator('#filter-zodiac').selectOption('马');
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('4 位客户'));
+  await page.locator('#filter-zodiac').selectOption('all');
+  await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('34 位客户'));
+  // 家属关系样本：刘先生详情包含周女士（夫妻）与生日倒计时
+  await page.getByRole('button', { name: '查看 刘先生 详情', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('周女士'));
+  const demoDetailText = await page.locator('.detail-view').innerText();
+  if (!demoDetailText.includes('夫妻') || !demoDetailText.includes('生日：')) throw new Error('演示家属关系样本缺失');
+  await page.getByRole('button', { name: '返回' }).click();
+  await page.waitForSelector('.toolbar');
+  // 关闭演示模式：恢复真实数据（已清空，互不影响）
+  await page.getByRole('button', { name: '设置' }).click();
+  await page.getByLabel('演示模式').uncheck();
+  await page.waitForTimeout(300);
+  await page.getByRole('button', { name: '客户' }).click();
+  await page.waitForFunction(() => (document.querySelector('.empty')?.textContent ?? '').includes('没有符合条件的客户'));
+  console.log('DEMO_MODE_OK');
 
   // PWA：manifest 与服务工作者
   const manifestCount = await page.locator('link[rel="manifest"]').count();

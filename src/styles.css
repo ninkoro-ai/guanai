@@ -133,6 +133,14 @@ input, select, textarea { font-size: 16px; }
 .select-row label { font-size: 12px; color: var(--muted); flex-shrink: 0; }
 .select-row .form-control { max-width: 220px; }
 
+.filter-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; margin: 10px 0 4px; }
+.filter-grid label { display: block; font-size: 12px; color: var(--muted); margin: 0 0 4px; }
+.filter-grid .form-control { width: 100%; }
+
+.pager { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 14px 0 4px; }
+.pager-info { font-size: 12px; color: var(--muted); }
+.pager-total { margin: 0; }
+
 .count { font-size: 12px; color: var(--muted); margin: 10px 0 8px; }
 
 .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
@@ -343,6 +351,7 @@ textarea.form-control { resize: vertical; }
 
 @media (max-width: 420px) {
   .form-grid { grid-template-columns: 1fr; }
+  .filter-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 380px) {

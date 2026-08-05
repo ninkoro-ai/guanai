@@ -62,6 +62,17 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
         />
       </div>
 
+      <h2 className="section-title">演示模式</h2>
+      <div className="setting">
+        <div>
+          <div className="setting-label">演示模式</div>
+          <div className="setting-desc">开启后加载内置演示数据（含家属关系与维护记录），与真实数据完全隔离；关闭后自动恢复您的数据</div>
+        </div>
+        <span className="switch">
+          <input type="checkbox" checked={settings.demoMode} onChange={(e) => onChange({ demoMode: e.target.checked })} aria-label="演示模式" />
+        </span>
+      </div>
+
       <h2 className="section-title">数据管理</h2>
       <div className="setting">
         <div>

@@ -45,17 +45,35 @@ export interface FamilyMember {
   createdAt: number;
 }
 
-export const db = new Dexie('birthday-care-assistant') as Dexie & {
+type BirthdayDb = Dexie & {
   customers: EntityTable<Customer, 'id'>;
   records: EntityTable<ContactRecord, 'id'>;
   familyMembers: EntityTable<FamilyMember, 'id'>;
 };
 
-db.version(3).stores({
+const schema = {
   customers: '++id, customerNo, birthday, level, industry, starred',
   records: '++id, customerId, contactDate',
   familyMembers: '++id, customerId, linkedCustomerId',
-});
+};
+
+/** 真实用户数据库（生产环境默认使用） */
+const realDb = new Dexie('birthday-care-assistant') as BirthdayDb;
+/** 演示数据数据库：与真实数据完全隔离 */
+export const demoDb = new Dexie('birthday-care-demo') as BirthdayDb;
+
+realDb.version(3).stores(schema);
+demoDb.version(3).stores(schema);
+
+/**
+ * 当前生效的数据库（ESM 实时绑定）：
+ * 演示模式开启时指向 demoDb，关闭时指向 realDb，切换不影响任何一方数据。
+ */
+export let db: BirthdayDb = realDb;
+
+export function setActiveDemoMode(on: boolean): void {
+  db = on ? demoDb : realDb;
+}
 
 /** 客户当天是否已完成维护（由维护记录派生，避免跨年状态过期） */
 export function hasContactToday(records: ContactRecord[], customerId: number | undefined, dateKey: string): boolean {

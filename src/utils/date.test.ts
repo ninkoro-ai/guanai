@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { birthdayInfo, birthdayMonth, birthProfile, currentMonth, isRealDate, parseFlexibleBirthday, todayKey } from './date';
+import { birthdayInfo, birthdayMonth, birthProfile, birthdaySign, birthdayZodiac, currentMonth, isRealDate, parseFlexibleBirthday, todayKey } from './date';
 
 describe('isRealDate', () => {
   it('validates real calendar dates including leap days', () => {
@@ -93,6 +93,23 @@ describe('birthdayInfo', () => {
 
   it('rolls past birthdays to next year', () => {
     expect(birthdayInfo('07-28', today).days).toBe(358);
+  });
+});
+
+describe('birthdaySign / birthdayZodiac', () => {
+  it('computes sign from month-day, works without year', () => {
+    expect(birthdaySign('1988-08-05')).toBe('狮子');
+    expect(birthdaySign('08-05')).toBe('狮子');
+    expect(birthdaySign('12-16')).toBe('射手');
+    expect(birthdaySign('12-25')).toBe('摩羯');
+    expect(birthdaySign('bad')).toBeNull();
+  });
+
+  it('computes zodiac only when year present', () => {
+    expect(birthdayZodiac('1978-08-05')).toBe('马');
+    expect(birthdayZodiac('1988-08-05')).toBe('龙');
+    expect(birthdayZodiac('08-05')).toBeNull();
+    expect(birthdayZodiac('bad')).toBeNull();
   });
 });
 

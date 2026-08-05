@@ -97,17 +97,17 @@ try {
 
   // 3) 客户列表（A类筛选）
   await page.getByRole('button', { name: '客户', exact: true }).click();
-  await page.getByRole('group', { name: '按客户等级筛选' }).getByRole('button', { name: 'A类', exact: true }).click();
+  await page.locator('#filter-level').selectOption('A');
   await page.waitForTimeout(400);
   await page.screenshot({ path: path.join(SHOT_DIR, '02-customers.png') });
-  await page.getByRole('group', { name: '按客户等级筛选' }).getByRole('button', { name: '全部', exact: true }).click();
+  await page.locator('#filter-level').selectOption('all');
 
   // 3.5) 星标筛选（星标客户置顶显示）
-  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: /星标/ }).click();
+  await page.locator('#filter-star').selectOption('starred');
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('6 位客户'));
   await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(SHOT_DIR, '14-star-customers.png') });
-  await page.getByRole('group', { name: '按星标筛选' }).getByRole('button', { name: '全部', exact: true }).click();
+  await page.locator('#filter-star').selectOption('all');
   await page.waitForFunction(() => (document.querySelector('.count')?.textContent ?? '').includes('48 位客户'));
 
   // 4) 搜索
