@@ -15,6 +15,10 @@ export interface Customer {
   industry: string;
   level: Level;
   remark: string;
+  /** 所属公司（选填，用于公私联动与客户画像） */
+  company?: string;
+  /** 职位（选填，用于公私联动与客户画像） */
+  position?: string;
   createdAt: number;
 }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
 import { Cake } from 'lucide-react';
 import BottomNav from './components/BottomNav';
 import { useToast } from './components/Toast';
@@ -9,6 +10,7 @@ import { RemindersPage } from './pages/RemindersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { readSettings, writeSettings, type AppSettings } from './settings';
 import { formatTodayHeading } from './utils/date';
+import { ensureFamilySync } from './family';
 
 export type Tab = 'home' | 'customers' | 'reminders' | 'settings';
 
@@ -17,6 +19,10 @@ export default function App() {
   const [detailId, setDetailId] = useState<number | null>(null);
   const [settings, setSettings] = useState<AppSettings>(readSettings);
   const toast = useToast();
+
+  useEffect(() => {
+    void ensureFamilySync();
+  }, []);
 
   const updateSettings = (patch: Partial<AppSettings>) => {
     const next = { ...settings, ...patch };

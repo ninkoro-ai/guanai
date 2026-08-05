@@ -53,9 +53,11 @@ export function CustomersPage({ onOpenDetail }: { onOpenDetail: (id: number) => 
     const id = c.id;
     if (id == null) return;
     if (!window.confirm(`确认删除客户 ${c.displayName}（${c.customerNo}）？其维护记录将一并删除。`)) return;
-    await db.transaction('rw', db.customers, db.records, async () => {
+    await db.transaction('rw', db.customers, db.records, db.familyMembers, async () => {
       await db.customers.delete(id);
       await db.records.where('customerId').equals(id).delete();
+      await db.familyMembers.where('customerId').equals(id).delete();
+      await db.familyMembers.where('linkedCustomerId').equals(id).delete();
     });
     toast.show('已删除客户');
   };

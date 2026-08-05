@@ -149,6 +149,11 @@ button.card-link:hover { border-color: var(--primary); }
 .back-btn { margin-bottom: 12px; padding-left: 4px; }
 .record-meta { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
 .link-name { border: 0; background: transparent; padding: 0; color: var(--primary); cursor: pointer; font: inherit; font-size: 15px; font-weight: 500; }
+.selected-customer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; padding: 8px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; font-size: 13px; }
+.search-results { margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.search-result { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 8px 12px; background: transparent; border: 0; border-bottom: 1px solid var(--border); cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.search-result:last-child { border-bottom: 0; }
+.search-result:hover { background: var(--surface-2); }
 
 .empty { background: var(--surface); border: 1px dashed var(--border); border-radius: 12px; padding: 18px; text-align: center; font-size: 13px; color: var(--muted); }
 

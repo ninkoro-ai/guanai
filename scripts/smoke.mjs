@@ -91,7 +91,7 @@ try {
   await page.getByRole('button', { name: '客户' }).click();
   await page.waitForSelector('.toolbar');
 
-  async function addCustomer(no, name, birthday, gender, level, industry, remark) {
+  async function addCustomer(no, name, birthday, gender, level, industry, remark, company, position) {
     await page.getByRole('button', { name: /新增客户/ }).click();
     await page.locator('#add-no').fill(no);
     await page.locator('#add-name').fill(name);
@@ -100,12 +100,14 @@ try {
     await page.locator('#add-level').selectOption(level);
     await page.locator('#add-industry').selectOption(industry);
     if (remark) await page.locator('#add-remark').fill(remark);
+    if (company) await page.locator('#add-company').fill(company);
+    if (position) await page.locator('#add-position').fill(position);
     await page.getByRole('button', { name: '保存客户' }).click();
     await page.waitForSelector('.toast-show');
     await page.waitForSelector('.toast-show', { state: 'hidden' }).catch(() => {});
   }
 
-  await addCustomer('C20260001', '刘先生', '1988-08-04', '男', 'A', '制造业', '合作5年以上，喜欢茶文化');
+  await addCustomer('C20260001', '刘先生', '1988-08-04', '男', 'A', '制造业', '合作5年以上，喜欢茶文化', '华兴制造集团', '总经理');
   await addCustomer('C20260004', '王先生', '08-10', '男', 'A', '批发零售', '合作多年');
   await addCustomer('C20260005', '李女士', '1993-08-11', '女', 'B', '信息技术', '关注理财');
 
@@ -179,6 +181,8 @@ try {
   await page.getByRole('button', { name: '查看 刘先生 详情' }).click();
   await page.waitForSelector('.detail-view');
   await page.waitForSelector('.detail-view .record');
+  const detailInfo = await page.locator('.detail-view').innerText();
+  if (!detailInfo.includes('华兴制造集团') || !detailInfo.includes('总经理')) throw new Error('公司/职位未展示');
   const historyBody = await page.locator('.detail-view .record-body').first().innerText();
   if (!historyBody.includes('客户表示感谢')) throw new Error('详情页历史维护记录缺失');
   await page.screenshot({ path: path.join(SHOT_DIR, 'detail.png') });
@@ -188,29 +192,59 @@ try {
   await page.getByRole('button', { name: '保存修改' }).click();
   await page.waitForFunction(() => (document.querySelector('.detail-view .record-body')?.textContent ?? '').includes('已确认后续服务'));
 
-  // 家属关系：关联已有客户、自由登记、编辑、删除、关联跳转
+  // 家属关系：搜索添加（编号/姓名）、双向自动同步、编辑、删除
   await page.getByRole('button', { name: '新增家属', exact: true }).click();
   await page.waitForSelector('dialog.modal[open]');
   await page.locator('#fm-relation').selectOption('夫妻');
-  await page.locator('#fm-linked').selectOption({ label: '王先生（C20260004）' });
+  await page.locator('#fm-search').fill('王');
+  await page.locator('.search-result', { hasText: '王先生' }).first().click();
   await page.locator('#fm-remark').fill('共同经营批发零售');
   await page.getByRole('button', { name: '保存', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
   await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('夫妻'));
   await page.getByRole('button', { name: '新增家属', exact: true }).click();
   await page.locator('#fm-relation').selectOption('子女');
-  await page.locator('#fm-name').fill('小刘');
+  await page.locator('#fm-search').fill('李女士');
+  await page.locator('.search-result', { hasText: '李女士' }).first().click();
   await page.locator('#fm-remark').fill('在海外读书');
   await page.getByRole('button', { name: '保存', exact: true }).click();
-  await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('小刘'));
-  await page.getByRole('button', { name: '编辑家属关系', exact: true }).first().click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
+  await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('李女士'));
+  await page.locator('.detail-view .record', { hasText: '王先生' }).getByRole('button', { name: '编辑家属关系', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]');
+  await page.waitForFunction(() => (document.querySelector('#fm-remark')?.value ?? '').includes('共同经营批发零售'));
   await page.locator('#fm-remark').fill('共同经营批发零售，夫妻档');
   await page.getByRole('button', { name: '保存修改', exact: true }).click();
+  await page.waitForSelector('dialog.modal[open]', { state: 'hidden' });
   await page.waitForFunction(() => (document.querySelector('.detail-view')?.textContent ?? '').includes('夫妻档'));
-  await page.locator('.detail-view').getByRole('button', { name: '删除家属关系', exact: true }).nth(1).click();
-  await page.waitForFunction(() => !(document.querySelector('.detail-view')?.textContent ?? '').includes('小刘'));
+  // 反向同步：王先生详情应显示“刘先生（夫妻）”
   await page.getByRole('button', { name: '王先生', exact: true }).click();
   await page.waitForFunction(() => (document.querySelector('.detail-view .card .name')?.textContent ?? '').includes('王先生'));
-  await page.getByRole('button', { name: '返回' }).click();
+  const wangFamily = await page.locator('.detail-view').innerText();
+  if (!wangFamily.includes('刘先生') || !wangFamily.includes('夫妻')) throw new Error('反向夫妻关系未同步');
+  await page.getByRole('button', { name: '返回', exact: true }).click();
+  await page.waitForSelector('.toolbar');
+  // 反向同步：李女士详情应显示“刘先生（父母）”
+  await page.getByRole('button', { name: '查看 刘先生 详情', exact: true }).click();
+  await page.waitForSelector('.detail-view');
+  await page.getByRole('button', { name: '李女士', exact: true }).click();
+  await page.waitForFunction(() => (document.querySelector('.detail-view .card .name')?.textContent ?? '').includes('李女士'));
+  const liFamily = await page.locator('.detail-view').innerText();
+  if (!liFamily.includes('刘先生') || !liFamily.includes('父母')) throw new Error('反向子女-父母关系未同步');
+  await page.getByRole('button', { name: '返回', exact: true }).click();
+  await page.waitForSelector('.toolbar');
+  // 删除李女士关系后，双方都应移除
+  await page.getByRole('button', { name: '查看 刘先生 详情', exact: true }).click();
+  await page.waitForSelector('.detail-view');
+  await page.locator('.detail-view .record', { hasText: '李女士' }).getByRole('button', { name: '删除家属关系', exact: true }).click();
+  await page.waitForFunction(() => !(document.querySelector('.detail-view')?.textContent ?? '').includes('李女士'));
+  await page.getByRole('button', { name: '返回', exact: true }).click();
+  await page.waitForSelector('.toolbar');
+  await page.getByRole('button', { name: '查看 李女士 详情', exact: true }).click();
+  await page.waitForSelector('.detail-view');
+  const liAfterDelete = await page.locator('.detail-view').innerText();
+  if (liAfterDelete.includes('刘先生')) throw new Error('删除后反向关系未清除');
+  await page.getByRole('button', { name: '返回', exact: true }).click();
   await page.waitForSelector('.toolbar');
 
   // 批量导入（含校验、重复、错误报告）

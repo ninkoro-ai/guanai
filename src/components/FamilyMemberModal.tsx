@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { Save } from 'lucide-react';
+import { Save, Search, X } from 'lucide-react';
 import { RELATION_TYPES } from '../constants';
-import { db, type FamilyMember, type RelationType } from '../db';
+import { db, type Customer, type FamilyMember, type RelationType } from '../db';
+import { addFamilyMember, updateFamilyMember } from '../family';
 import { Modal } from './Modal';
 import { useToast } from './Toast';
 
@@ -19,7 +20,9 @@ export function FamilyMemberModal({
 }) {
   const customers = useLiveQuery(() => db.customers.toArray(), []) ?? [];
   const [relationType, setRelationType] = useState<RelationType>('夫妻');
-  const [linkedId, setLinkedId] = useState<number | ''>('');
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<Customer | null>(null);
+  const [interacted, setInteracted] = useState(false);
   const [name, setName] = useState('');
   const [remark, setRemark] = useState('');
   const [error, setError] = useState('');
@@ -27,53 +30,79 @@ export function FamilyMemberModal({
   const toast = useToast();
 
   const isEdit = member != null;
-  const options = useMemo(() => customers.filter((c) => c.id !== customerId), [customers, customerId]);
 
   useEffect(() => {
     if (!open) return;
+    setInteracted(false);
     if (member) {
       setRelationType(member.relationType);
-      setLinkedId(member.linkedCustomerId ?? '');
-      setName(member.displayName);
       setRemark(member.remark);
+      setName(member.displayName);
+      setSelected(null);
     } else {
       setRelationType('夫妻');
-      setLinkedId('');
-      setName('');
       setRemark('');
+      setName('');
+      setSelected(null);
     }
-    setError('');
   }, [open, member]);
 
-  const pickCustomer = (id: number | '') => {
-    setLinkedId(id);
-    if (id !== '') {
-      const c = customers.find((x) => x.id === id);
-      if (c) setName(c.displayName);
+  useEffect(() => {
+    if (open) {
+      setQuery('');
+      setError('');
     }
+  }, [open]);
+
+  const results = useMemo(() => {
+    const q = query.trim();
+    if (!q) return [];
+    return customers.filter(
+      (c) => c.id !== customerId && (c.displayName.includes(q) || c.customerNo.includes(q)),
+    );
+  }, [customers, query, customerId]);
+
+  const linkedCustomer = useMemo(
+    () => (member?.linkedCustomerId != null ? customers.find((c) => c.id === member.linkedCustomerId) ?? null : null),
+    [customers, member],
+  );
+  // 用户未主动操作时，惰性补上关联客户；用户操作后以用户选择为准
+  const currentSelected = !interacted ? (selected ?? linkedCustomer) : selected;
+
+  const select = (c: Customer) => {
+    setInteracted(true);
+    setSelected(c);
+    setName(c.displayName);
+    setQuery('');
+  };
+
+  const clear = () => {
+    setInteracted(true);
+    setSelected(null);
+    setName('');
   };
 
   const save = async () => {
     const nameTrim = name.trim();
-    if (!nameTrim) {
-      setError('请填写家属姓名，或选择关联客户');
+    if (!currentSelected && !nameTrim) {
+      setError('请填写家属姓名，或搜索并选择关联客户');
       return;
     }
     if (saving) return;
     setSaving(true);
     try {
-      const fields = {
+      const input = {
         customerId,
-        displayName: nameTrim,
+        displayName: currentSelected?.displayName ?? nameTrim,
         relationType,
-        linkedCustomerId: linkedId === '' ? undefined : linkedId,
+        linkedCustomerId: currentSelected?.id,
         remark: remark.trim(),
       };
       if (isEdit && member?.id != null) {
-        await db.familyMembers.update(member.id, fields);
+        await updateFamilyMember(member.id, input);
         toast.show('已更新家属关系');
       } else {
-        await db.familyMembers.add({ ...fields, createdAt: Date.now() });
+        await addFamilyMember(input);
         toast.show('已新增家属关系');
       }
       onClose();
@@ -101,14 +130,33 @@ export function FamilyMemberModal({
         <select id="fm-relation" className="form-control" value={relationType} onChange={(e) => setRelationType(e.target.value as RelationType)}>
           {RELATION_TYPES.map((t) => <option key={t}>{t}</option>)}
         </select>
-        <label htmlFor="fm-linked">关联已有客户（选填）</label>
-        <select id="fm-linked" className="form-control" value={linkedId} onChange={(e) => pickCustomer(e.target.value === '' ? '' : Number(e.target.value))}>
-          <option value="">不关联，仅登记姓名</option>
-          {options.map((c) => <option key={c.id} value={c.id}>{c.displayName}（{c.customerNo}）</option>)}
-        </select>
+        <label htmlFor="fm-search">关联已有客户（选填，支持编号 / 姓名搜索）</label>
+        <div className="search">
+          <Search size={15} />
+          <input id="fm-search" type="search" placeholder="输入客户编号或简称搜索" value={query} onChange={(e) => setQuery(e.target.value)} />
+        </div>
+        {currentSelected ? (
+          <div className="selected-customer">
+            <span>{currentSelected.displayName}（{currentSelected.customerNo}）</span>
+            <button type="button" className="btn btn-icon btn-ghost" aria-label="取消选择" onClick={clear}>
+              <X size={14} />
+            </button>
+          </div>
+        ) : null}
+        {!currentSelected && query.trim() ? (
+          <div className="search-results" role="listbox" aria-label="客户搜索结果">
+            {results.length === 0 && <div className="empty">未找到匹配客户</div>}
+            {results.slice(0, 8).map((c) => (
+              <button key={c.id} type="button" className="search-result" onClick={() => select(c)}>
+                <span className="name">{c.displayName}</span>
+                <span className="sub">{c.customerNo} · {c.industry}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
         <label htmlFor="fm-name">家属姓名 *</label>
-        <input id="fm-name" className="form-control" placeholder="如：王女士 / 小刘" value={name} onChange={(e) => setName(e.target.value)} disabled={linkedId !== ''} />
-        <p className="field-hint">关联已有客户后，姓名自动取该客户简称</p>
+        <input id="fm-name" className="form-control" placeholder="如：王女士 / 小刘" value={name} onChange={(e) => { setInteracted(true); setName(e.target.value); }} disabled={currentSelected != null} />
+        <p className="field-hint">选择关联客户后姓名自动取该客户简称；也可不关联直接填写</p>
         <label htmlFor="fm-remark">备注</label>
         <textarea id="fm-remark" className="form-control" rows={2} placeholder="如：共同经营 / 在私行有账户" value={remark} onChange={(e) => setRemark(e.target.value)} />
         {error ? <p className="form-error">{error}</p> : null}

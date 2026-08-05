@@ -18,7 +18,7 @@ export interface ParsedImport {
   duplicates: ImportDuplicate[];
 }
 
-const HEADERS = ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注'];
+const HEADERS = ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位'];
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
@@ -27,11 +27,11 @@ function pad2(n: number): string {
 export function downloadImportTemplate(): void {
   const ws = XLSX.utils.aoa_to_sheet([
     HEADERS,
-    ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年'],
-    ['C002', '王女士', '08-15', '女', '服务业', 'B类', ''],
-    ['C003', '陈先生', '1990年8月5日', '男', '建筑业', 'C类', ''],
+    ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年', '华兴制造集团', '总经理'],
+    ['C002', '王女士', '08-15', '女', '服务业', 'B类', '', '', ''],
+    ['C003', '陈先生', '1990年8月5日', '男', '建筑业', 'C类', '', '恒达建筑', '项目经理'],
   ]);
-  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 20 }];
+  ws['!cols'] = [{ wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 12 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '客户');
   XLSX.writeFile(wb, '客户生日关怀助手_导入模板.xlsx');
@@ -221,6 +221,8 @@ export async function parseImportFile(file: File, existingNos: Set<string>): Pro
       industry: normalizeIndustry(cells[4]),
       level: level as Level,
       remark: String(cells[6] ?? '').trim(),
+      company: String(cells[7] ?? '').trim() || undefined,
+      position: String(cells[8] ?? '').trim() || undefined,
       createdAt: 0,
     };
     if (existingNos.has(customerNo)) {
@@ -258,7 +260,7 @@ export function exportData(customers: Customer[], records: ContactRecord[]): voi
 
   const cws = XLSX.utils.aoa_to_sheet([
     HEADERS,
-    ...customers.map((c) => [c.customerNo, c.displayName, c.birthday, c.gender, c.industry, `${c.level}类`, c.remark]),
+    ...customers.map((c) => [c.customerNo, c.displayName, c.birthday, c.gender, c.industry, `${c.level}类`, c.remark, c.company ?? '', c.position ?? '']),
   ]);
   XLSX.utils.book_append_sheet(wb, cws, '客户');
 

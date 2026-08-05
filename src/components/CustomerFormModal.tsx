@@ -14,6 +14,8 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
   const [industry, setIndustry] = useState<string>(INDUSTRIES[0]);
   const [level, setLevel] = useState<Level>('C');
   const [remark, setRemark] = useState('');
+  const [company, setCompany] = useState('');
+  const [position, setPosition] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const toast = useToast();
@@ -30,6 +32,8 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
       setIndustry(customer.industry);
       setLevel(customer.level);
       setRemark(customer.remark);
+      setCompany(customer.company ?? '');
+      setPosition(customer.position ?? '');
     } else {
       setNo('');
       setName('');
@@ -38,6 +42,8 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
       setIndustry(INDUSTRIES[0]);
       setLevel('C');
       setRemark('');
+      setCompany('');
+      setPosition('');
     }
     setError('');
   }, [open, customer]);
@@ -65,6 +71,8 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
         industry,
         level,
         remark: remark.trim(),
+        company: company.trim() || undefined,
+        position: position.trim() || undefined,
       };
       if (customer?.id != null) {
         await db.customers.update(customer.id, fields);
@@ -127,6 +135,16 @@ export function CustomerFormModal({ open, customer, onClose }: { open: boolean; 
         </select>
         <label htmlFor="add-remark">备注</label>
         <textarea id="add-remark" className="form-control" rows={2} placeholder="如：合作5年以上 / 喜欢茶文化" value={remark} onChange={(e) => setRemark(e.target.value)} />
+        <div className="form-grid">
+          <div>
+            <label htmlFor="add-company">所属公司（选填）</label>
+            <input id="add-company" className="form-control" placeholder="如：华兴制造集团" value={company} onChange={(e) => setCompany(e.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="add-position">职位（选填）</label>
+            <input id="add-position" className="form-control" placeholder="如：总经理" value={position} onChange={(e) => setPosition(e.target.value)} />
+          </div>
+        </div>
         {error ? <p className="form-error">{error}</p> : null}
       </form>
     </Modal>

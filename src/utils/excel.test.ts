@@ -124,6 +124,19 @@ describe('parseImportFile', () => {
     const r = await parseImportFile(file, new Set());
     expect(r.rows[0]).toMatchObject({ level: 'A', gender: '男', industry: '其他', birthday: '08-20' });
   });
+
+  it('parses optional company and position columns', async () => {
+    const file = makeFile([
+      ['客户编号', '客户简称', '生日', '性别', '行业', '客户等级', '备注', '所属公司', '职位'],
+      ['C001', '刘先生', '1988-08-20', '男', '制造业', 'A类', '合作多年', '华兴制造集团', '总经理'],
+      ['C002', '王女士', '08-15', '女', '服务业', 'B类', '', '', ''],
+    ]);
+    const r = await parseImportFile(file, new Set());
+    expect(r.rows[0].company).toBe('华兴制造集团');
+    expect(r.rows[0].position).toBe('总经理');
+    expect(r.rows[1].company).toBeUndefined();
+    expect(r.rows[1].position).toBeUndefined();
+  });
 });
 
 describe('buildErrorReport', () => {

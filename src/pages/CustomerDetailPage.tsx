@@ -8,6 +8,7 @@ import { LevelBadge } from '../components/LevelBadge';
 import { RecordFormModal } from '../components/RecordFormModal';
 import { useToast } from '../components/Toast';
 import { db, hasContactToday, type ContactRecord, type FamilyMember } from '../db';
+import { deleteFamilyMember } from '../family';
 import { birthdayInfo, todayKey } from '../utils/date';
 
 export function CustomerDetailPage({
@@ -46,7 +47,7 @@ export function CustomerDetailPage({
   const removeMember = async (m: FamilyMember) => {
     if (m.id == null) return;
     if (!window.confirm(`确认删除家属关系“${m.displayName}（${m.relationType}）”吗？`)) return;
-    await db.familyMembers.delete(m.id);
+    await deleteFamilyMember(m.id);
     toast.show('已删除家属关系');
   };
 
@@ -68,6 +69,12 @@ export function CustomerDetailPage({
           <span>生日：{info.md}</span>
           <span>距离生日：{info.label}</span>
         </div>
+        {(customer.company || customer.position) ? (
+          <div className="sub">
+            {customer.company ? <span>公司：{customer.company}</span> : null}
+            {customer.position ? <span>职位：{customer.position}</span> : null}
+          </div>
+        ) : null}
         {customer.remark ? <div className="remark">{customer.remark}</div> : null}
         <div className="actions">
           <button type="button" className="btn btn-sm" onClick={() => setEditCustomer(true)}><Pencil size={14} /> 编辑客户</button>
