@@ -13,7 +13,7 @@ export default defineConfig({
       manifest: {
         name: '心桥',
         short_name: '心桥',
-        description: '心桥 - 面向银行客户经理的轻量化客户关系维护工具，为你搭建与客户之间心的桥梁',
+        description: '心桥 · 客户关怀系统——您与客户之间心的桥梁。面向银行客户经理，生日提醒、祝福辅助、维护记录一站式完成。',
         lang: 'zh-CN',
         start_url: './',
         scope: './',

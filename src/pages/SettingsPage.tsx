@@ -113,6 +113,12 @@ export function SettingsPage({ settings, onChange }: { settings: AppSettings; on
         所有数据仅存储在本机浏览器中，不上传服务器。
       </div>
 
+      <h2 className="section-title">关于心桥</h2>
+      <div className="note">
+        心桥 · 客户关怀系统 —— 您与客户之间心的桥梁。<br />
+        面向银行客户经理，提供生日提醒、祝福辅助、维护记录与家属关系管理，让客户关怀简单、及时、有温度。
+      </div>
+
       <p className="creator-mark">Powered by Ninkoro.com</p>
 
       <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />

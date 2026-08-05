@@ -86,6 +86,17 @@ try {
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.waitForSelector('.app');
+  // 品牌信息：Header slogan、产品定位、微信分享描述
+  const appTitle = await page.title();
+  if (!appTitle.includes('客户关怀系统')) throw new Error(`页面标题缺少产品定位: ${appTitle}`);
+  const slogan = await page.locator('.app-slogan').innerText();
+  if (!slogan.includes('您与客户之间心的桥梁')) throw new Error('Header 缺少品牌 slogan');
+  const appTag = await page.locator('.app-tag').innerText();
+  if (!appTag.includes('客户关怀系统')) throw new Error('Header 缺少产品定位标签');
+  const metaDesc = await page.locator('meta[name="description"]').getAttribute('content');
+  if (!metaDesc || !metaDesc.includes('客户关怀系统') || !metaDesc.includes('心的桥梁')) throw new Error('网页描述缺少定位或 slogan');
+  const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
+  if (!ogTitle || !ogTitle.includes('客户关怀系统')) throw new Error('微信分享标题缺少产品定位');
 
   // 新增三个客户（一个今日生日、两个未来 7 天）
   await page.getByRole('button', { name: '客户' }).click();
