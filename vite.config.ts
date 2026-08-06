@@ -28,8 +28,13 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['index.html', 'icons/**'],
+        globPatterns: ['index.html', 'icons/**', 'website/index.html'],
         navigateFallback: 'index.html',
+        // 关键修复：SW 的 navigateFallback 只应兜底 SPA 自身。
+        // 禁止对 /website/ 等独立静态子页面使用根 index.html 兜底，
+        // 否则根 SPA 会劫持 /website/ 的导航请求（Safari 下尤甚，
+        // 表现为 /website/ 渲染出主站首页内容、地址栏路径丢失）。
+        navigateFallbackDenylist: [/^\/website\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,

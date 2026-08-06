@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>心桥 · 客户关怀系统</title>
 <meta name="description" content="心桥是面向银行客户经理的客户关怀系统——心的桥梁。生日提醒、祝福辅助、维护记录、家属关系一站式完成，离线可用、本地存储零隐私风险。" />
 <meta property="og:title" content="心桥 · 客户关怀系统" />
@@ -10,6 +13,13 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xinqiao.ninkoro.com/website/" />
 <script>document.documentElement.classList.add('js');</script>
+<script>
+  // BFCache 兼容：Safari 从前进/后退缓存（bfcache）恢复时强制重载，
+  // 避免恢复出陈旧页面（旧 Service Worker 兜底导致的错误内容）。
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) { window.location.reload(); }
+  });
+</script>
 <style>
   :root {
     --brand: #C2410C;
